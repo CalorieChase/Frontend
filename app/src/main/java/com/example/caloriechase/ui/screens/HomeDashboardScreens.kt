@@ -51,6 +51,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.caloriechase.ui.DashboardMetricItem
+import com.example.caloriechase.ui.HomeFocus
+import com.example.caloriechase.ui.RecentRunItem
+import com.example.caloriechase.ui.UserProfile
 import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.SecondaryButton
@@ -64,22 +68,14 @@ import com.example.caloriechase.ui.theme.SurfaceOutline
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-private data class DashboardMetric(
-    val label: String,
-    val value: String,
-    val accent: Color,
-    val icon: ImageVector
-)
-
-private data class RecentRun(
-    val title: String,
-    val date: String,
-    val distance: String,
-    val score: String
-)
-
 @Composable
-fun HomePlaceholderScreen(modifier: Modifier = Modifier) {
+fun HomePlaceholderScreen(
+    profile: UserProfile,
+    focusCards: List<HomeFocus>,
+    modifier: Modifier = Modifier,
+    onPlanRoute: () -> Unit,
+    onOpenMapPreview: () -> Unit
+) {
     val selectedDay = remember { LocalDate.now().dayOfWeek }
 
     LazyColumn(
@@ -103,7 +99,7 @@ fun HomePlaceholderScreen(modifier: Modifier = Modifier) {
                             color = NeonBlue
                         )
                         Text(
-                            text = "Good morning, David!",
+                            text = "Good morning, ${profile.name}!",
                             style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -127,22 +123,16 @@ fun HomePlaceholderScreen(modifier: Modifier = Modifier) {
 
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                HomeFocusCard(
-                    modifier = Modifier.weight(1f),
-                    label = "Live steps",
-                    value = "8,421",
-                    supporting = "Keep moving to build your streak.",
-                    accent = NeonGreen,
-                    icon = Icons.Rounded.DirectionsWalk
-                )
-                HomeFocusCard(
-                    modifier = Modifier.weight(1f),
-                    label = "Focus",
-                    value = "Route run",
-                    supporting = "Start a guided run and collect points on the way.",
-                    accent = NeonOrange,
-                    icon = Icons.Rounded.Bolt
-                )
+                focusCards.forEach { card ->
+                    HomeFocusCard(
+                        modifier = Modifier.weight(1f),
+                        label = card.label,
+                        value = card.value,
+                        supporting = card.supporting,
+                        accent = card.accent,
+                        icon = card.icon
+                    )
+                }
             }
         }
 
@@ -204,29 +194,21 @@ fun HomePlaceholderScreen(modifier: Modifier = Modifier) {
         }
 
         item {
-            PrimaryButton(text = "Start guided route", onClick = {})
+            PrimaryButton(text = "Start guided route", onClick = onPlanRoute)
         }
 
         item {
-            SecondaryButton(text = "Try 3D map preview", onClick = {})
+            SecondaryButton(text = "Try 3D map preview", onClick = onOpenMapPreview)
         }
     }
 }
 
 @Composable
-fun DashboardPlaceholderScreen(modifier: Modifier = Modifier) {
-    val metrics = listOf(
-        DashboardMetric("Distance covered", "24.8 km", NeonBlue, Icons.Rounded.Route),
-        DashboardMetric("Coins earned", "980", NeonOrange, Icons.Rounded.Toll),
-        DashboardMetric("Calories burned", "1,420 kcal", NeonRed, Icons.Rounded.LocalFireDepartment),
-        DashboardMetric("Runs completed", "12", NeonGreen, Icons.Rounded.DirectionsRun)
-    )
-    val recentRuns = listOf(
-        RecentRun("Morning Run", "Aug 8, 2026", "5.2 km", "450 pts"),
-        RecentRun("Treasure Route", "Aug 6, 2026", "7.1 km", "620 pts"),
-        RecentRun("Sunset Sprint", "Aug 4, 2026", "4.3 km", "390 pts")
-    )
-
+fun DashboardPlaceholderScreen(
+    metrics: List<DashboardMetricItem>,
+    recentRuns: List<RecentRunItem>,
+    modifier: Modifier = Modifier
+) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -485,7 +467,7 @@ private fun RoutePreviewChip(icon: ImageVector, text: String) {
 @Composable
 private fun MetricCard(
     modifier: Modifier = Modifier,
-    metric: DashboardMetric
+    metric: DashboardMetricItem
 ) {
     Card(
         modifier = modifier,
@@ -514,7 +496,7 @@ private fun MetricCard(
 }
 
 @Composable
-private fun RecentRunCard(run: RecentRun) {
+private fun RecentRunCard(run: RecentRunItem) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
