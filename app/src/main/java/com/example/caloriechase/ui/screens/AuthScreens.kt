@@ -107,7 +107,7 @@ fun LoginScreen(
         PrimaryButton(text = "Log in", onClick = onLogin)
 
         BodyText(
-            text = "Secure sign-in with your running profile",
+            text = "Placeholder sign-in opens the full Kotlin frontend without waiting on backend auth wiring.",
             modifier = Modifier.padding(horizontal = 8.dp)
         )
 
