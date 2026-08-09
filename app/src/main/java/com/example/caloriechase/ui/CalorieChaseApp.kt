@@ -129,7 +129,7 @@ fun CalorieChaseApp() {
                 composable(AppDestination.Splash.route) {
                     SplashScreen(
                         onFinished = {
-                            navController.navigate(AppDestination.Onboarding.route) {
+                            navController.navigate(AppDestination.Home.route) {
                                 popUpTo(AppDestination.Splash.route) { inclusive = true }
                             }
                         }
