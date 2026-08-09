@@ -58,6 +58,19 @@ fun ActiveRunScreen(
             }
         }
 
+        SurfacePanel {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Checkpoint tracker",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                routePreview.checkpoints.forEachIndexed { index, checkpoint ->
+                    BodyText("${index + 1}. ${checkpoint.title} • ${checkpoint.reward}")
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
