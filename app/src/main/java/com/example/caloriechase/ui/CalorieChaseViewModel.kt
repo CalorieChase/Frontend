@@ -1,13 +1,10 @@
 package com.example.caloriechase.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.automirrored.rounded.DirectionsRun
+import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.DirectionsRun
-import androidx.compose.material.icons.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.LocalFireDepartment
-import androidx.compose.material.icons.rounded.Map
-import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material.icons.rounded.Toll
 import androidx.compose.runtime.getValue
@@ -57,14 +54,14 @@ data class AppUiState(
         RunStat("Time", "18:42")
     ),
     val homeFocus: List<HomeFocus> = listOf(
-        HomeFocus("Live steps", "8,421", "Keep moving to build your streak.", NeonGreen, Icons.Rounded.DirectionsWalk),
+        HomeFocus("Live steps", "8,421", "Keep moving to build your streak.", NeonGreen, Icons.AutoMirrored.Rounded.DirectionsWalk),
         HomeFocus("Focus", "Route run", "Start a guided run and collect points on the way.", NeonOrange, Icons.Rounded.Bolt)
     ),
     val dashboardMetrics: List<DashboardMetricItem> = listOf(
         DashboardMetricItem("Distance covered", "24.8 km", NeonBlue, Icons.Rounded.Route),
         DashboardMetricItem("Coins earned", "980", NeonOrange, Icons.Rounded.Toll),
         DashboardMetricItem("Calories burned", "1,420 kcal", NeonRed, Icons.Rounded.LocalFireDepartment),
-        DashboardMetricItem("Runs completed", "12", NeonGreen, Icons.Rounded.DirectionsRun)
+        DashboardMetricItem("Runs completed", "12", NeonGreen, Icons.AutoMirrored.Rounded.DirectionsRun)
     ),
     val recentRuns: List<RecentRunItem> = listOf(
         RecentRunItem("Morning Run", "Aug 8, 2026", "5.2 km", "450 pts"),
@@ -116,7 +113,10 @@ class CalorieChaseViewModel : ViewModel() {
     fun selectActivity(activity: String) {
         uiState = uiState.copy(
             selectedActivity = activity,
-            activeRoute = uiState.activeRoute.copy(activityType = activity)
+            activeRoute = uiState.activeRoute.copy(
+                activityType = activity,
+                caloriesLabel = estimateCaloriesLabel(activity, uiState.selectedDistanceKm)
+            )
         )
     }
 
@@ -124,7 +124,10 @@ class CalorieChaseViewModel : ViewModel() {
         uiState = uiState.copy(
             selectedDistanceKm = distanceKm,
             activeRoute = uiState.activeRoute.copy(
-                distanceLabel = String.format("%.1f km", distanceKm)
+                distanceLabel = String.format("%.1f km", distanceKm),
+                durationLabel = estimateDurationLabel(distanceKm, uiState.selectedActivity),
+                caloriesLabel = estimateCaloriesLabel(uiState.selectedActivity, distanceKm),
+                scoreLabel = estimateScoreLabel(distanceKm)
             )
         )
     }
@@ -135,5 +138,28 @@ class CalorieChaseViewModel : ViewModel() {
 
     fun selectLocation(locationSuggestion: LocationSuggestion) {
         uiState = uiState.copy(selectedLocation = locationSuggestion)
+    }
+
+    private fun estimateDurationLabel(distanceKm: Float, activity: String): String {
+        val paceMinutesPerKm = when (activity) {
+            "Walk" -> 11f
+            "Jog" -> 7.2f
+            else -> 4.8f
+        }
+        val totalMinutes = (distanceKm * paceMinutesPerKm).toInt().coerceAtLeast(12)
+        return "$totalMinutes min"
+    }
+
+    private fun estimateCaloriesLabel(activity: String, distanceKm: Float): String {
+        val multiplier = when (activity) {
+            "Walk" -> 52
+            "Jog" -> 67
+            else -> 81
+        }
+        return "${(distanceKm * multiplier).toInt()} kcal"
+    }
+
+    private fun estimateScoreLabel(distanceKm: Float): String {
+        return "${(distanceKm * 80).toInt()} pts"
     }
 }
