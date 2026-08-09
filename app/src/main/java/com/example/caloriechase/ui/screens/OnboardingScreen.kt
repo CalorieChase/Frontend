@@ -17,8 +17,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.DirectionsRun
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.DirectionsRun
 import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material.icons.rounded.WorkspacePremium
@@ -63,7 +63,7 @@ fun OnboardingScreen(
         OnboardingPage(
             title = "Burn the calorie, chase the fat.",
             description = "CalorieChase helps you turn every run into a more guided, motivating experience.",
-            icon = Icons.Rounded.DirectionsRun,
+            icon = Icons.AutoMirrored.Rounded.DirectionsRun,
             accent = NeonOrange,
             eyebrow = "Welcome"
         ),
