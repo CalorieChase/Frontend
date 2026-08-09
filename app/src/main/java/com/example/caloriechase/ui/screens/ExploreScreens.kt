@@ -110,6 +110,22 @@ fun ProgressScreen(
                 subtitle = "A fuller Compose version of the legacy progress screen with weekly summaries and achievements."
             )
         }
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
+                    .border(1.dp, SurfaceOutline, RoundedCornerShape(28.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Weekly consistency chart placeholder",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NeonBlue
+                )
+            }
+        }
         items(highlights) { highlight ->
             SurfacePanel(emphasized = true) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
