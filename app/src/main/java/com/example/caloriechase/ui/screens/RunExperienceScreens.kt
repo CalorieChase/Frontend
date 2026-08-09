@@ -136,6 +136,11 @@ fun RunSummaryScreen(
                         BodyText(line)
                     }
                 }
+                Text(
+                    text = "Reward chest ready: ${routePreview.scoreLabel}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NeonGreen
+                )
             }
         }
 
