@@ -19,7 +19,10 @@ import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.ScreenColumn
 import com.example.caloriechase.ui.components.ScreenHeader
 import com.example.caloriechase.ui.components.SelectableChip
+import com.example.caloriechase.ui.components.StatBadge
 import com.example.caloriechase.ui.components.SurfacePanel
+import com.example.caloriechase.ui.theme.NeonBlue
+import com.example.caloriechase.ui.theme.NeonOrange
 
 @Composable
 fun RoutePlannerScreen(
@@ -53,6 +56,10 @@ fun RoutePlannerScreen(
                 )
                 BodyText(selectedLocation.title)
                 BodyText(selectedLocation.address)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    StatBadge("Mode", selectedActivity, NeonOrange, Modifier.weight(1f))
+                    StatBadge("Goal", String.format("%.1f km", selectedDistanceKm), NeonBlue, Modifier.weight(1f))
+                }
                 PrimaryButton(text = "Change location", onClick = onOpenLocationPicker)
             }
         }
