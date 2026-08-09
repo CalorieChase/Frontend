@@ -133,7 +133,14 @@ class CalorieChaseViewModel : ViewModel() {
     }
 
     fun updatePrompt(prompt: String) {
-        uiState = uiState.copy(selectedPrompt = prompt)
+        uiState = uiState.copy(
+            selectedPrompt = prompt,
+            activeRoute = uiState.activeRoute.copy(
+                description = prompt.ifBlank {
+                    "A balanced route with one bridge climb, river views, and two reward clusters."
+                }
+            )
+        )
     }
 
     fun selectLocation(locationSuggestion: LocationSuggestion) {
