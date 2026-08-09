@@ -202,7 +202,7 @@ fun RegisterScreen(
 
         PrimaryButton(text = "Continue setup", onClick = onContinue)
 
-        BodyText("Next, we'll capture height and weight for more accurate calorie estimates.")
+        BodyText("Next, you'll add height and weight so the placeholder frontend can personalize route and calorie panels.")
 
         AuthSwitchPanel(
             message = "Already have an account? Jump back into your routine.",
