@@ -298,5 +298,17 @@ fun Map3DPreviewScreen(
                 }
             }
         }
+        item {
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Controls to port later",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    BodyText("Tilt, heading, zoom, and map style toggles will map naturally onto this shell once the live map layer is restored.")
+                }
+            }
+        }
     }
 }
