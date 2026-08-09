@@ -7,9 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.caloriechase.ui.CalorieChaseApp
 import com.example.caloriechase.ui.theme.CalorieChaseTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,11 +18,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             CalorieChaseTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "CalorieChase")
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        CalorieChaseApp()
                     }
                 }
             }
