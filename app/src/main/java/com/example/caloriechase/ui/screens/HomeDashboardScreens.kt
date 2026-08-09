@@ -22,9 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.DirectionsRun
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.DirectionsRun
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.NotificationsNone
@@ -104,6 +104,11 @@ fun HomePlaceholderScreen(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         BodyText("Stay consistent today. Your route, pace, and progress are ready.")
+                        Text(
+                            text = "${profile.levelTitle} • ${profile.streakDays}-day streak",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = NeonGreen
+                        )
                     }
                     IconButton(
                         onClick = {},
@@ -518,7 +523,7 @@ private fun RecentRunCard(run: RecentRunItem) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.DirectionsRun,
+                    imageVector = Icons.AutoMirrored.Rounded.DirectionsRun,
                     contentDescription = null,
                     tint = NeonGreen
                 )
