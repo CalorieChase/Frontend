@@ -205,6 +205,18 @@ fun CoachScreen(
                 )
             }
         }
+        item {
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Today’s recommendation",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    BodyText("A mid-distance jog route is the best placeholder match for recovery and streak protection today.")
+                }
+            }
+        }
         items(tips) { tip ->
             SurfacePanel {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
