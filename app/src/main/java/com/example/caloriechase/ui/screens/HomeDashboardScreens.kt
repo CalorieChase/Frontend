@@ -235,6 +235,11 @@ fun DashboardPlaceholderScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     BodyText("Track how your recent runs are stacking up across distance, rewards, calories, and consistency.")
+                    Text(
+                        text = "Updated for Sunday, August 9, 2026",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = NeonGreen
+                    )
                 }
             }
         }
