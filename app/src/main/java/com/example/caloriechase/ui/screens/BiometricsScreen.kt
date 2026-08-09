@@ -78,6 +78,14 @@ fun BiometricsScreen(
             }
         }
 
+        SurfacePanel {
+            Text(
+                text = "These placeholder values can be changed later once real account persistence is wired in.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
         PrimaryButton(
             text = "Finish setup",
             onClick = {
