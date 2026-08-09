@@ -154,11 +154,21 @@ fun OnboardingScreen(
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "Get Started",
-                                style = MaterialTheme.typography.headlineMedium,
-                                color = item.accent
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Text(
+                                    text = "Get Started",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    color = item.accent
+                                )
+                                Text(
+                                    text = "Frontend preview ready",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
