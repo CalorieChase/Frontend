@@ -1,10 +1,10 @@
 package com.example.caloriechase.ui
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.padding
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,10 +28,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.caloriechase.ui.components.AppGradientSurface
-import com.example.caloriechase.ui.screens.AuthPlaceholderScreen
 import com.example.caloriechase.ui.screens.DashboardPlaceholderScreen
 import com.example.caloriechase.ui.screens.HomePlaceholderScreen
-import com.example.caloriechase.ui.screens.OnboardingPlaceholderScreen
+import com.example.caloriechase.ui.screens.LoginScreen
+import com.example.caloriechase.ui.screens.OnboardingScreen
+import com.example.caloriechase.ui.screens.RegisterScreen
 import com.example.caloriechase.ui.screens.SplashScreen
 
 private data class BottomDestination(
@@ -97,7 +98,9 @@ fun CalorieChaseApp() {
             NavHost(
                 navController = navController,
                 startDestination = AppDestination.Splash.route,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
                 enterTransition = {
                     slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Left,
@@ -133,33 +136,31 @@ fun CalorieChaseApp() {
                     )
                 }
                 composable(AppDestination.Onboarding.route) {
-                    OnboardingPlaceholderScreen(
+                    OnboardingScreen(
                         modifier = Modifier.fillMaxSize(),
                         onGetStarted = { navController.navigate(AppDestination.Login.route) }
                     )
                 }
                 composable(AppDestination.Login.route) {
-                    AuthPlaceholderScreen(
+                    LoginScreen(
                         modifier = Modifier.fillMaxSize(),
-                        isRegister = false,
-                        onPrimaryAction = {
+                        onLogin = {
                             navController.navigate(AppDestination.Home.route) {
                                 popUpTo(AppDestination.Login.route) { inclusive = true }
                             }
                         },
-                        onSwitchMode = { navController.navigate(AppDestination.Register.route) }
+                        onGoToRegister = { navController.navigate(AppDestination.Register.route) }
                     )
                 }
                 composable(AppDestination.Register.route) {
-                    AuthPlaceholderScreen(
+                    RegisterScreen(
                         modifier = Modifier.fillMaxSize(),
-                        isRegister = true,
-                        onPrimaryAction = {
+                        onContinue = {
                             navController.navigate(AppDestination.Home.route) {
                                 popUpTo(AppDestination.Register.route) { inclusive = true }
                             }
                         },
-                        onSwitchMode = { navController.popBackStack() }
+                        onGoToLogin = { navController.popBackStack() }
                     )
                 }
                 composable(AppDestination.Home.route) {
