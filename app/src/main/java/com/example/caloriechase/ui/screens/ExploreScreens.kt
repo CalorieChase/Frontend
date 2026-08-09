@@ -58,6 +58,18 @@ fun TreasureScreen(
                 subtitle = "Ported from the legacy treasure surface using collectible placeholders."
             )
         }
+        item {
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Featured hunt",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    BodyText("The Bridge Crown route has the highest reward density in today’s placeholder rotation.")
+                }
+            }
+        }
         items(treasures) { treasure ->
             SurfacePanel {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
