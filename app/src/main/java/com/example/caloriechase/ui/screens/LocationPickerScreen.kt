@@ -75,6 +75,13 @@ fun LocationPickerScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (selected) NeonBlue else MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (selected) {
+                        Text(
+                            text = "Selected starting point",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = NeonBlue
+                        )
+                    }
                 }
             }
         }
