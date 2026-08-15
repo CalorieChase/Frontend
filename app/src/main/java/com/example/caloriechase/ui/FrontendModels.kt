@@ -62,7 +62,30 @@ data class RoutePreset(
 data class LocationSuggestion(
     val title: String,
     val address: String,
-    val description: String
+    val description: String,
+    val backendQuery: String
+)
+
+enum class GoalTypeUi(val apiValue: String, val label: String) {
+    Distance("distance", "Distance"),
+    ActiveCalories("active_calories", "Calories")
+}
+
+enum class RouteTypeUi(val apiValue: String, val label: String) {
+    Auto("AUTO", "Auto"),
+    Loop("LOOP", "Loop"),
+    Turnaround("TURNAROUND", "Turnaround")
+}
+
+data class RoutePoint(
+    val lat: Double,
+    val lng: Double
+)
+
+data class CoinSpot(
+    val lat: Double,
+    val lng: Double,
+    val value: Int
 )
 
 data class RouteCheckpoint(
@@ -79,7 +102,25 @@ data class RoutePreview(
     val caloriesLabel: String,
     val scoreLabel: String,
     val description: String,
-    val checkpoints: List<RouteCheckpoint>
+    val checkpoints: List<RouteCheckpoint>,
+    val routePoints: List<RoutePoint>,
+    val coinSpots: List<CoinSpot>,
+    val routeTypeLabel: String,
+    val routePolyline: String
+)
+
+data class RoutePlannerRequest(
+    val startingLocation: String,
+    val weightKg: Int,
+    val goalType: GoalTypeUi,
+    val goalValue: Float,
+    val routeType: RouteTypeUi
+)
+
+data class RoutePlannerSummary(
+    val goalHeadline: String,
+    val goalDetail: String,
+    val routeDetail: String
 )
 
 data class RunStat(
