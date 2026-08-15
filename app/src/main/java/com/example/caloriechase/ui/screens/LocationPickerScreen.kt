@@ -38,7 +38,7 @@ fun LocationPickerScreen(
     ScreenColumn(modifier = modifier.fillMaxSize()) {
         ScreenHeader(
             title = "Choose a start point",
-            subtitle = "Backend map search is deferred, so this screen uses curated placeholders that still match the legacy flow.",
+            subtitle = "These launch pads are seeded with reliable coordinates so the backend can generate routes immediately.",
             onBack = onBack
         )
 
@@ -51,9 +51,10 @@ fun LocationPickerScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Map Preview Placeholder",
+                text = selectedLocation.title,
                 style = MaterialTheme.typography.titleMedium,
-                color = NeonBlue
+                color = NeonBlue,
+                modifier = Modifier.padding(20.dp)
             )
         }
 

@@ -11,10 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.caloriechase.ui.GoalTypeUi
 import com.example.caloriechase.ui.LocationSuggestion
 import com.example.caloriechase.ui.RoutePreset
+import com.example.caloriechase.ui.RouteTypeUi
 import com.example.caloriechase.ui.components.BodyText
-import com.example.caloriechase.ui.components.CalorieTextField
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.ScreenColumn
 import com.example.caloriechase.ui.components.ScreenHeader
@@ -22,28 +23,48 @@ import com.example.caloriechase.ui.components.SelectableChip
 import com.example.caloriechase.ui.components.StatBadge
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonBlue
+import com.example.caloriechase.ui.theme.NeonGreen
 import com.example.caloriechase.ui.theme.NeonOrange
+import com.example.caloriechase.ui.theme.NeonRed
+import kotlin.math.roundToInt
 
 @Composable
 fun RoutePlannerScreen(
     presets: List<RoutePreset>,
-    selectedActivity: String,
-    selectedDistanceKm: Float,
-    selectedPrompt: String,
+    selectedGoalType: GoalTypeUi,
+    selectedGoalValue: Float,
+    selectedRouteType: RouteTypeUi,
     selectedLocation: LocationSuggestion,
+    weightKg: Int,
+    isGeneratingRoute: Boolean,
+    routeErrorMessage: String?,
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onOpenLocationPicker: () -> Unit,
-    onSelectActivity: (String) -> Unit,
-    onDistanceChange: (Float) -> Unit,
-    onPromptChange: (String) -> Unit,
+    onSelectGoalType: (GoalTypeUi) -> Unit,
+    onGoalValueChange: (Float) -> Unit,
+    onSelectRouteType: (RouteTypeUi) -> Unit,
+    onDismissError: () -> Unit,
     onApplyPreset: (RoutePreset) -> Unit,
     onGenerateRoute: () -> Unit
 ) {
+    val sliderRange = if (selectedGoalType == GoalTypeUi.Distance) 1.5f..8.0f else 80f..420f
+    val sliderSteps = if (selectedGoalType == GoalTypeUi.Distance) 12 else 16
+    val goalLabel = if (selectedGoalType == GoalTypeUi.Distance) {
+        String.format("%.1f km", selectedGoalValue)
+    } else {
+        "${selectedGoalValue.roundToInt()} kcal"
+    }
+    val goalSupport = if (selectedGoalType == GoalTypeUi.Distance) {
+        "The backend uses this distance directly for route generation."
+    } else {
+        "The backend converts this calorie target into a walking distance before routing."
+    }
+
     ScreenColumn(modifier = modifier.fillMaxSize()) {
         ScreenHeader(
             title = "Build your next route",
-            subtitle = "This mirrors the Java flow with placeholder generation instead of backend requests.",
+            subtitle = "Choose a real starting point, a route style, and a goal the backend can generate right now.",
             onBack = onBack
         )
 
@@ -56,9 +77,10 @@ fun RoutePlannerScreen(
                 )
                 BodyText(selectedLocation.title)
                 BodyText(selectedLocation.address)
+                BodyText(selectedLocation.description)
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatBadge("Mode", selectedActivity, NeonOrange, Modifier.weight(1f))
-                    StatBadge("Goal", String.format("%.1f km", selectedDistanceKm), NeonBlue, Modifier.weight(1f))
+                    StatBadge("Weight", "$weightKg kg", NeonGreen, Modifier.weight(1f))
+                    StatBadge("Style", selectedRouteType.label, NeonBlue, Modifier.weight(1f))
                 }
                 PrimaryButton(text = "Change location", onClick = onOpenLocationPicker)
             }
@@ -67,7 +89,7 @@ fun RoutePlannerScreen(
         SurfacePanel {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "Activity type",
+                    text = "Goal type",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -75,14 +97,50 @@ fun RoutePlannerScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    listOf("Walk", "Jog", "Run").forEach { activity ->
+                    GoalTypeUi.entries.forEach { goalType ->
                         SelectableChip(
-                            text = activity,
-                            selected = activity == selectedActivity,
-                            onClick = { onSelectActivity(activity) },
+                            text = goalType.label,
+                            selected = goalType == selectedGoalType,
+                            onClick = { onSelectGoalType(goalType) },
                             modifier = Modifier.weight(1f)
                         )
                     }
+                }
+                BodyText(goalSupport)
+            }
+        }
+
+        SurfacePanel {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    text = "Target",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = goalLabel,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Slider(
+                    value = selectedGoalValue.coerceIn(sliderRange.start, sliderRange.endInclusive),
+                    onValueChange = onGoalValueChange,
+                    valueRange = sliderRange,
+                    steps = sliderSteps
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    StatBadge(
+                        "Low",
+                        if (selectedGoalType == GoalTypeUi.Distance) "1.5 km" else "80 kcal",
+                        NeonOrange,
+                        Modifier.weight(1f)
+                    )
+                    StatBadge(
+                        "High",
+                        if (selectedGoalType == GoalTypeUi.Distance) "8.0 km" else "420 kcal",
+                        NeonBlue,
+                        Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -90,35 +148,44 @@ fun RoutePlannerScreen(
         SurfacePanel {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "Target distance",
+                    text = "Route type",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Text(
-                    text = String.format("%.1f km", selectedDistanceKm),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Slider(
-                    value = selectedDistanceKm,
-                    onValueChange = onDistanceChange,
-                    valueRange = 1.5f..10f
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    RouteTypeUi.entries.forEach { routeType ->
+                        SelectableChip(
+                            text = routeType.label,
+                            selected = routeType == selectedRouteType,
+                            onClick = { onSelectRouteType(routeType) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                BodyText(
+                    when (selectedRouteType) {
+                        RouteTypeUi.Auto -> "Let the backend compare loop and out-and-back options near your target."
+                        RouteTypeUi.Loop -> "Start and finish at the same point with a closed route."
+                        RouteTypeUi.Turnaround -> "Walk outward for about half the target and return along the path."
+                    }
                 )
             }
         }
 
-        SurfacePanel {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "Route brief",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                CalorieTextField(
-                    value = selectedPrompt,
-                    onValueChange = onPromptChange,
-                    label = "Describe the kind of route you want"
-                )
+        if (routeErrorMessage != null) {
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Route generation issue",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = NeonRed
+                    )
+                    BodyText(routeErrorMessage)
+                    PrimaryButton(text = "Dismiss", onClick = onDismissError)
+                }
             }
         }
 
@@ -139,6 +206,10 @@ fun RoutePlannerScreen(
             }
         }
 
-        PrimaryButton(text = "Generate placeholder route", onClick = onGenerateRoute)
+        PrimaryButton(
+            text = if (isGeneratingRoute) "Generating live route..." else "Generate live route",
+            enabled = !isGeneratingRoute,
+            onClick = onGenerateRoute
+        )
     }
 }

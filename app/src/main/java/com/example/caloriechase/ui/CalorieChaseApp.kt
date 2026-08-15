@@ -231,21 +231,28 @@ fun CalorieChaseApp(
                 composable(AppDestination.RoutePlanner.route) {
                     RoutePlannerScreen(
                         presets = state.routePresets,
-                        selectedActivity = state.selectedActivity,
-                        selectedDistanceKm = state.selectedDistanceKm,
-                        selectedPrompt = state.selectedPrompt,
+                        selectedGoalType = state.selectedGoalType,
+                        selectedGoalValue = state.selectedGoalValue,
+                        selectedRouteType = state.selectedRouteType,
                         selectedLocation = state.selectedLocation,
+                        weightKg = state.profile.weightKg,
+                        isGeneratingRoute = state.isGeneratingRoute,
+                        routeErrorMessage = state.routeErrorMessage,
                         modifier = Modifier.fillMaxSize(),
                         onBack = { navController.popBackStack() },
                         onOpenLocationPicker = { navController.navigate(AppDestination.LocationPicker.route) },
-                        onSelectActivity = appViewModel::selectActivity,
-                        onDistanceChange = appViewModel::selectDistance,
-                        onPromptChange = appViewModel::updatePrompt,
-                        onApplyPreset = { preset ->
-                            appViewModel.selectDistance(preset.distanceKm)
-                            appViewModel.updatePrompt(preset.supporting)
-                        },
-                        onGenerateRoute = { navController.navigate(AppDestination.RoutePreview.route) }
+                        onSelectGoalType = appViewModel::selectGoalType,
+                        onGoalValueChange = appViewModel::selectGoalValue,
+                        onSelectRouteType = appViewModel::selectRouteType,
+                        onDismissError = appViewModel::clearRouteError,
+                        onApplyPreset = appViewModel::applyPreset,
+                        onGenerateRoute = {
+                            appViewModel.generateRoute {
+                                navController.navigate(AppDestination.RoutePreview.route) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
                     )
                 }
                 composable(AppDestination.LocationPicker.route) {

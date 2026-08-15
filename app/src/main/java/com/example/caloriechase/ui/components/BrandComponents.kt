@@ -138,17 +138,20 @@ fun CalorieTextField(
 fun PrimaryButton(
     text: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth(),
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
         contentPadding = PaddingValues(vertical = 16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
         )
     ) {
         Text(text = text, style = MaterialTheme.typography.titleMedium)
