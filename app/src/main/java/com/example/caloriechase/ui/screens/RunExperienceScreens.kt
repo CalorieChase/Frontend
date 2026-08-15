@@ -41,7 +41,7 @@ fun ActiveRunScreen(
     ScreenColumn(modifier = modifier.fillMaxSize()) {
         ScreenHeader(
             title = "Live route session",
-            subtitle = "This placeholder mirrors the legacy game screen with a simulated map and live stats.",
+            subtitle = "Follow the generated route, sweep the coin lanes, and finish strong.",
             onBack = onBack
         )
 
@@ -66,7 +66,7 @@ fun ActiveRunScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 routePreview.checkpoints.forEachIndexed { index, checkpoint ->
-                    BodyText("${index + 1}. ${checkpoint.title} â€¢ ${checkpoint.reward}")
+                    BodyText("${index + 1}. ${checkpoint.title} • ${checkpoint.reward}")
                 }
             }
         }
@@ -80,7 +80,7 @@ fun ActiveRunScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "Coin collection and GPS follow mode will attach here later",
+                text = "${routePreview.coinSpots.size} coin drops loaded across a ${routePreview.routeTypeLabel.lowercase()} route.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = NeonGreen,
                 modifier = Modifier.padding(20.dp)
@@ -102,7 +102,7 @@ fun RunSummaryScreen(
     ScreenColumn(modifier = modifier.fillMaxSize()) {
         ScreenHeader(
             title = "Session summary",
-            subtitle = "A polished placeholder finish state for the old game activity.",
+            subtitle = "Your generated treasure route is complete.",
             onBack = null
         )
 
@@ -113,7 +113,7 @@ fun RunSummaryScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                BodyText("Strong finish. The placeholder flow recorded a complete frontend-only session.")
+                BodyText("Strong finish. The route, coins, and score all came from the live backend response.")
             }
         }
 
@@ -127,12 +127,12 @@ fun RunSummaryScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 listOf(
-                    "Collected every checkpoint on the route preview.",
-                    "Stayed on pace through the bridge sprint segment.",
-                    "Closed the run with a strong finish zone push."
+                    "Covered ${routePreview.distanceLabel} on a ${routePreview.routeTypeLabel.lowercase()} mission.",
+                    "Collected ${routePreview.coinSpots.size} coin drops across ${routePreview.checkpoints.size} checkpoint zones.",
+                    "Finished with an estimated ${routePreview.caloriesLabel} burn."
                 ).forEach { line ->
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("â€¢", color = NeonGreen)
+                        Text("•", color = NeonGreen)
                         BodyText(line)
                     }
                 }

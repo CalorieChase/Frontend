@@ -22,10 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import com.example.caloriechase.ui.RouteCheckpoint
+import com.example.caloriechase.ui.RoutePoint
 import com.example.caloriechase.ui.RoutePreview
 import com.example.caloriechase.ui.RunStat
 import com.example.caloriechase.ui.theme.NeonBlue
@@ -48,15 +48,6 @@ fun RouteMapCard(
                     .border(1.dp, SurfaceOutline, RoundedCornerShape(24.dp))
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    val pathPoints = listOf(
-                        Offset(size.width * 0.14f, size.height * 0.72f),
-                        Offset(size.width * 0.28f, size.height * 0.54f),
-                        Offset(size.width * 0.42f, size.height * 0.62f),
-                        Offset(size.width * 0.56f, size.height * 0.38f),
-                        Offset(size.width * 0.72f, size.height * 0.52f),
-                        Offset(size.width * 0.84f, size.height * 0.24f)
-                    )
-
                     drawRect(
                         brush = Brush.linearGradient(
                             colors = listOf(
@@ -67,23 +58,61 @@ fun RouteMapCard(
                         )
                     )
 
-                    for (index in 0 until pathPoints.lastIndex) {
+                    val routePoints = routePreview.routePoints.ifEmpty {
+                        listOf(
+                            RoutePoint(37.7793, -122.4193),
+                            RoutePoint(37.7814, -122.4178),
+                            RoutePoint(37.7842, -122.4187),
+                            RoutePoint(37.7861, -122.4202),
+                            RoutePoint(37.7842, -122.4187),
+                            RoutePoint(37.7814, -122.4178),
+                            RoutePoint(37.7793, -122.4193)
+                        )
+                    }
+                    val allPoints = routePoints + routePreview.coinSpots.map { RoutePoint(it.lat, it.lng) }
+                    val minLat = allPoints.minOf { it.lat }
+                    val maxLat = allPoints.maxOf { it.lat }
+                    val minLng = allPoints.minOf { it.lng }
+                    val maxLng = allPoints.maxOf { it.lng }
+                    val latSpan = (maxLat - minLat).takeIf { it > 0.00001 } ?: 0.00001
+                    val lngSpan = (maxLng - minLng).takeIf { it > 0.00001 } ?: 0.00001
+                    val horizontalPadding = size.width * 0.12f
+                    val verticalPadding = size.height * 0.14f
+
+                    fun project(point: RoutePoint): Offset {
+                        val xRatio = ((point.lng - minLng) / lngSpan).toFloat()
+                        val yRatio = ((point.lat - minLat) / latSpan).toFloat()
+                        val x = horizontalPadding + xRatio * (size.width - horizontalPadding * 2f)
+                        val y = size.height - verticalPadding - yRatio * (size.height - verticalPadding * 2f)
+                        return Offset(x, y)
+                    }
+
+                    val routeOffsets = routePoints.map(::project)
+                    val coinOffsets = routePreview.coinSpots.map { project(RoutePoint(it.lat, it.lng)) }
+
+                    for (index in 0 until routeOffsets.lastIndex) {
                         drawLine(
                             color = NeonBlue,
-                            start = pathPoints[index],
-                            end = pathPoints[index + 1],
+                            start = routeOffsets[index],
+                            end = routeOffsets[index + 1],
                             strokeWidth = 10f,
-                            cap = StrokeCap.Round,
-                            pathEffect = PathEffect.cornerPathEffect(28f)
+                            cap = StrokeCap.Round
                         )
                     }
 
-                    pathPoints.forEachIndexed { index, point ->
+                    coinOffsets.forEach { point ->
                         drawCircle(
-                            color = if (index == pathPoints.lastIndex) NeonGreen else NeonOrange,
-                            radius = if (index == pathPoints.lastIndex) 14f else 10f,
+                            color = NeonOrange,
+                            radius = 9f,
                             center = point
                         )
+                    }
+
+                    routeOffsets.firstOrNull()?.let { start ->
+                        drawCircle(color = NeonBlue, radius = 12f, center = start)
+                    }
+                    routeOffsets.lastOrNull()?.let { finish ->
+                        drawCircle(color = NeonGreen, radius = 14f, center = finish)
                     }
                 }
             }
@@ -102,6 +131,10 @@ fun RouteMapCard(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 StatBadge("Calories", routePreview.caloriesLabel, NeonOrange, Modifier.weight(1f))
                 StatBadge("Score", routePreview.scoreLabel, NeonBlue, Modifier.weight(1f))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatBadge("Route", routePreview.routeTypeLabel, NeonGreen, Modifier.weight(1f))
+                StatBadge("Coins", routePreview.coinSpots.size.toString(), NeonOrange, Modifier.weight(1f))
             }
         }
     }
@@ -141,7 +174,7 @@ fun RunStatsRow(
                     StatBadge(
                         label = stat.label,
                         value = stat.value,
-                        accent = if (stat.label == "Score") NeonOrange else NeonBlue,
+                        accent = if (stat.label == "Coins") NeonOrange else NeonBlue,
                         modifier = Modifier.weight(1f)
                     )
                 }
