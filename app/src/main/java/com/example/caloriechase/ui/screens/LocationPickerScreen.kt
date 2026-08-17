@@ -5,13 +5,10 @@ import android.location.Geocoder
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.calculateTopPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -109,10 +106,11 @@ fun LocationPickerScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
+                .statusBarsPadding()
                 .padding(
                     start = 16.dp,
                     end = 16.dp,
-                    top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() + 16.dp
+                    top = 16.dp
                 ),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyLarge,
