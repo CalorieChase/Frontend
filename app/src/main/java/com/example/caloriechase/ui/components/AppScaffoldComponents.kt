@@ -2,7 +2,6 @@ package com.example.caloriechase.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,41 +64,6 @@ fun ScreenHeader(
         if (action != null) {
             action()
         }
-    }
-}
-
-@Composable
-fun SelectableChip(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val containerColor = if (selected) {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
-    }
-    val borderColor = if (selected) {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-    } else {
-        SurfaceOutline
-    }
-    val contentColor = if (selected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.onBackground
-    }
-
-    Box(
-        modifier = modifier
-            .background(containerColor, RoundedCornerShape(18.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(18.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = text, style = MaterialTheme.typography.labelLarge, color = contentColor)
     }
 }
 
