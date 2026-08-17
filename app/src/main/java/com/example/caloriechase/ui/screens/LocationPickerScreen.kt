@@ -1,26 +1,42 @@
 package com.example.caloriechase.ui.screens
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +48,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.example.caloriechase.ui.LocationSuggestion
+import com.example.caloriechase.ui.components.BodyText
+import com.example.caloriechase.ui.components.PrimaryButton
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -41,7 +60,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +70,7 @@ import kotlinx.coroutines.withContext
 
 private val DefaultMapPoint = LatLng(37.7793, -122.4193)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationPickerScreen(
     selectedLocation: LocationSuggestion,
@@ -67,51 +87,98 @@ fun LocationPickerScreen(
         parseLatLng(selectedLocation.backendQuery) ?: DefaultMapPoint
     }
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(initialPoint, 15f)
+        position = CameraPosition.fromLatLngZoom(initialPoint, 17f)
     }
-    val markerState = rememberMarkerState(position = initialPoint)
+    var hasLocationPermission by remember { mutableStateOf(hasLocationPermission(context)) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
+    var pendingLocation by remember { mutableStateOf<LocationSuggestion?>(selectedLocation) }
+    val markerState = rememberUpdatedMarkerState(
+        position = parseLatLng(pendingLocation?.backendQuery.orEmpty()) ?: initialPoint
+    )
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { grantResults ->
+        hasLocationPermission = grantResults[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            grantResults[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (hasLocationPermission) {
+            coroutineScope.launch {
+                val currentLocation = getBestLastKnownLocation(context)
+                if (currentLocation != null) {
+                    val currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude)
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(currentLatLng, 17f)
+                    )
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (!hasLocationPermission) {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        } else {
+            val currentLocation = getBestLastKnownLocation(context)
+            if (currentLocation != null) {
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(currentLocation.latitude, currentLocation.longitude),
+                        17f
+                    )
+                )
+            }
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            properties = MapProperties(isBuildingEnabled = true),
+            properties = MapProperties(
+                isBuildingEnabled = true,
+                isMyLocationEnabled = hasLocationPermission
+            ),
             uiSettings = MapUiSettings(
-                zoomControlsEnabled = false,
-                myLocationButtonEnabled = false,
-                compassEnabled = true
+                zoomControlsEnabled = true,
+                myLocationButtonEnabled = hasLocationPermission,
+                compassEnabled = true,
+                mapToolbarEnabled = true
             ),
             onMapClick = { latLng ->
-                markerState.position = latLng
                 coroutineScope.launch {
                     isSearching = true
                     val pickedLocation = reverseGeocodeLocation(context, latLng)
                     isSearching = false
-                    onSelectLocation(pickedLocation)
-                    onConfirm()
+                    pendingLocation = pickedLocation
                 }
             }
         ) {
             Marker(
                 state = markerState,
-                title = "Starting point"
+                title = pendingLocation?.title ?: "Starting point",
+                snippet = pendingLocation?.address
             )
         }
 
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
+        Surface(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    top = 16.dp
-                ),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+            shape = MaterialTheme.shapes.extraLarge,
+            tonalElevation = 6.dp,
+            shadowElevation = 8.dp
+        ) {
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyLarge,
             placeholder = { Text("Search for a place or address") },
@@ -128,9 +195,12 @@ fun LocationPickerScreen(
                         val searchResult = geocodeLocationName(context, searchQuery)
                         isSearching = false
                         if (searchResult != null) {
-                            markerState.position = LatLng(searchResult.latitude, searchResult.longitude)
+                            pendingLocation = addressToLocationSuggestion(searchResult)
                             cameraPositionState.animate(
-                                CameraUpdateFactory.newLatLngZoom(markerState.position, 16f)
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(searchResult.latitude, searchResult.longitude),
+                                    17f
+                                )
                             )
                         }
                     }
@@ -158,9 +228,12 @@ fun LocationPickerScreen(
                                 val searchResult = geocodeLocationName(context, searchQuery)
                                 isSearching = false
                                 if (searchResult != null) {
-                                    markerState.position = LatLng(searchResult.latitude, searchResult.longitude)
+                                    pendingLocation = addressToLocationSuggestion(searchResult)
                                     cameraPositionState.animate(
-                                        CameraUpdateFactory.newLatLngZoom(markerState.position, 16f)
+                                        CameraUpdateFactory.newLatLngZoom(
+                                            LatLng(searchResult.latitude, searchResult.longitude),
+                                            17f
+                                        )
                                     )
                                 }
                             }
@@ -182,6 +255,78 @@ fun LocationPickerScreen(
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground
             )
         )
+
+        }
+
+        FilledTonalIconButton(
+            onClick = {
+                if (hasLocationPermission) {
+                    coroutineScope.launch {
+                        val currentLocation = getBestLastKnownLocation(context)
+                        if (currentLocation != null) {
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(currentLocation.latitude, currentLocation.longitude),
+                                    17f
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    permissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 104.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.MyLocation,
+                contentDescription = "Move to my location"
+            )
+        }
+    }
+
+    pendingLocation?.let { pickedLocation ->
+        ModalBottomSheet(
+            onDismissRequest = { pendingLocation = null }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Text(
+                    text = "Location picked",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = pickedLocation.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                BodyText(pickedLocation.address)
+                Spacer(modifier = Modifier.height(8.dp))
+                BodyText(pickedLocation.description)
+                Spacer(modifier = Modifier.height(20.dp))
+                PrimaryButton(
+                    text = "Confirm starting point",
+                    onClick = {
+                        onSelectLocation(pickedLocation)
+                        onConfirm()
+                    }
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
     }
 }
 
@@ -252,6 +397,35 @@ private suspend fun reverseGeocodeLocation(
         backendQuery = "${latLng.latitude},${latLng.longitude}"
     )
 }
+
+private fun addressToLocationSuggestion(address: Address): LocationSuggestion {
+    return LocationSuggestion(
+        title = address.featureName ?: address.locality ?: "Pinned place",
+        address = address.getAddressLine(0) ?: formatCoordinateAddress(LatLng(address.latitude, address.longitude)),
+        description = "Picked from the search result.",
+        backendQuery = "${address.latitude},${address.longitude}"
+    )
+}
+
+private fun hasLocationPermission(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
+private fun getBestLastKnownLocation(context: Context): Location? {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+    val providers = runCatching { locationManager.getProviders(true) }.getOrDefault(emptyList())
+    return providers.mapNotNull { provider ->
+        runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull()
+    }.maxByOrNull(Location::getAccuracyScore)
+}
+
+private fun Location.getAccuracyScore(): Float = accuracy.takeIf { it > 0f }?.let { -it } ?: Float.NEGATIVE_INFINITY
 
 private fun formatCoordinateTitle(latLng: LatLng): String {
     return String.format(Locale.US, "Pinned point %.4f, %.4f", latLng.latitude, latLng.longitude)
