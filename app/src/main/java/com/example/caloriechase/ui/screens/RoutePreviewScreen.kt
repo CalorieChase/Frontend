@@ -3,19 +3,23 @@ package com.example.caloriechase.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.caloriechase.ui.RoutePoint
@@ -32,7 +36,6 @@ import com.example.caloriechase.ui.theme.NeonGreen
 import java.util.Locale
 import kotlin.math.abs
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoutePreviewScreen(
     routePreview: RoutePreview,
@@ -44,28 +47,18 @@ fun RoutePreviewScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            TopAppBar(
-                title = { Text("Route Overview") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
+            RouteOverviewTopBar(onBack = onBack)
         }
     ) { innerPadding ->
         ScreenColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp)
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
         ) {
             SurfacePanel(emphasized = true) {
                 Text(
-                    text = "${routePreview.activityType} mission ready • ${routePreview.coinSpots.size} coins • ${routePreview.scoreLabel}",
+                    text = "${routePreview.activityType} mission ready - ${routePreview.coinSpots.size} coins - ${routePreview.scoreLabel}",
                     style = MaterialTheme.typography.titleMedium,
                     color = NeonGreen
                 )
@@ -103,6 +96,39 @@ fun RoutePreviewScreen(
     }
 }
 
+@Composable
+private fun RouteOverviewTopBar(onBack: () -> Unit) {
+    Surface(
+        tonalElevation = 2.dp,
+        shadowElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .height(52.dp)
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+            Text(
+                text = "Route Overview",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
+}
+
 private fun endpointTitle(routePoints: List<RoutePoint>): String {
     val start = routePoints.firstOrNull()
     val end = routePoints.lastOrNull()
@@ -131,4 +157,3 @@ private fun isSamePoint(first: RoutePoint, second: RoutePoint): Boolean {
     return abs(first.lat - second.lat) < 0.0001 &&
         abs(first.lng - second.lng) < 0.0001
 }
-
