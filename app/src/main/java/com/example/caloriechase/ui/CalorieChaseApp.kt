@@ -257,7 +257,6 @@ fun CalorieChaseApp(
                 }
                 composable(AppDestination.LocationPicker.route) {
                     LocationPickerScreen(
-                        suggestions = state.locationSuggestions,
                         selectedLocation = state.selectedLocation,
                         modifier = Modifier.fillMaxSize(),
                         onBack = { navController.popBackStack() },
