@@ -1,5 +1,7 @@
 package com.example.caloriechase.ui.components
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -15,10 +17,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.annotation.DrawableRes
+import com.example.caloriechase.R
 import com.example.caloriechase.ui.RouteCheckpoint
 import com.example.caloriechase.ui.RoutePreview
 import com.example.caloriechase.ui.RunStat
@@ -27,6 +39,9 @@ import com.example.caloriechase.ui.theme.NeonGreen
 import com.example.caloriechase.ui.theme.NeonOrange
 import com.example.caloriechase.ui.theme.SurfaceOutline
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.GoogleMap
@@ -36,6 +51,7 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
+import kotlinx.coroutines.launch
 
 @Composable
 fun RouteMapCard(
@@ -43,16 +59,40 @@ fun RouteMapCard(
     modifier: Modifier = Modifier
 ) {
     SurfacePanel(modifier = modifier) {
+        val startMarkerIcon = remember {
+            BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+        }
+        val coinMarkerIcon = rememberBitmapDescriptor(
+            drawableResId = R.drawable.coin,
+            size = 28.dp
+        )
+        val finishMarkerIcon = rememberBitmapDescriptor(
+            drawableResId = R.drawable.treasure,
+            size = 36.dp
+        )
         val routePoints = routePreview.routePoints.map { LatLng(it.lat, it.lng) }
-        val cameraPositionState = rememberCameraPositionState()
+        val fallbackPoint = LatLng(37.7793, -122.4193)
+        val initialCameraPoint = routePoints.firstOrNull() ?: fallbackPoint
+        val cameraPositionState = rememberCameraPositionState {
+            position = CameraPosition.fromLatLngZoom(initialCameraPoint, 15.5f)
+        }
+        val coroutineScope = rememberCoroutineScope()
+        var isMapLoaded by remember { mutableStateOf(false) }
         val startPoint = routePoints.firstOrNull()
         val endPoint = routePoints.lastOrNull()
         val coinPoints = routePreview.coinSpots.map { LatLng(it.lat, it.lng) }
         val allMapPoints = (routePoints + coinPoints).ifEmpty {
-            listOf(LatLng(37.7793, -122.4193))
+            listOf(fallbackPoint)
         }
 
-        LaunchedEffect(routePreview.routePoints, routePreview.coinSpots) {
+        LaunchedEffect(routePreview.routePoints, routePreview.coinSpots, isMapLoaded) {
+            if (!isMapLoaded) {
+                if (allMapPoints.size == 1) {
+                    cameraPositionState.position = CameraPosition.fromLatLngZoom(allMapPoints.first(), 16f)
+                }
+                return@LaunchedEffect
+            }
+
             if (allMapPoints.size == 1) {
                 cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(allMapPoints.first(), 16f))
             } else {
@@ -80,7 +120,24 @@ fun RouteMapCard(
                         zoomControlsEnabled = false,
                         compassEnabled = true,
                         mapToolbarEnabled = false
-                    )
+                    ),
+                    onMapLoaded = {
+                        isMapLoaded = true
+                    },
+                    onMapClick = { latLng ->
+                        if (!isMapLoaded) {
+                            return@GoogleMap
+                        }
+
+                        coroutineScope.launch {
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    latLng,
+                                    (cameraPositionState.position.zoom + 1.5f).coerceAtMost(19f)
+                                )
+                            )
+                        }
+                    }
                 ) {
                     if (routePoints.size >= 2) {
                         Polyline(
@@ -93,20 +150,23 @@ fun RouteMapCard(
                     startPoint?.let { point ->
                         Marker(
                             state = rememberUpdatedMarkerState(position = point),
-                            title = "Start"
+                            title = "Start",
+                            icon = startMarkerIcon
                         )
                     }
-                    if (endPoint != null && (startPoint == null || endPoint != startPoint)) {
+                    endPoint?.let { point ->
                         Marker(
-                            state = rememberUpdatedMarkerState(position = endPoint),
-                            title = "End"
+                            state = rememberUpdatedMarkerState(position = point),
+                            title = "Finish",
+                            icon = finishMarkerIcon
                         )
                     }
                     routePreview.coinSpots.forEachIndexed { index, coin ->
                         Marker(
                             state = rememberUpdatedMarkerState(position = LatLng(coin.lat, coin.lng)),
                             title = "Coin ${index + 1}",
-                            snippet = "${coin.value} pts"
+                            snippet = "${coin.value} pts",
+                            icon = coinMarkerIcon
                         )
                     }
                 }
@@ -191,5 +251,21 @@ fun MiniLegendRow(modifier: Modifier = Modifier) {
         DotLegend(color = NeonBlue, text = "Route line")
         DotLegend(color = NeonOrange, text = "Coins")
         DotLegend(color = NeonGreen, text = "Finish")
+    }
+}
+
+@Composable
+private fun rememberBitmapDescriptor(
+    @DrawableRes drawableResId: Int,
+    size: Dp
+): BitmapDescriptor? {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val sizePx = with(density) { size.roundToPx() }.coerceAtLeast(1)
+
+    return remember(context, drawableResId, sizePx) {
+        val bitmap = BitmapFactory.decodeResource(context.resources, drawableResId) ?: return@remember null
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, sizePx, sizePx, true)
+        BitmapDescriptorFactory.fromBitmap(scaledBitmap)
     }
 }
