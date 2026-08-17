@@ -2,7 +2,7 @@ package com.example.caloriechase.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.DirectionsWalk
+import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material.icons.rounded.Toll
@@ -81,14 +81,14 @@ data class AppUiState(
     val isGeneratingRoute: Boolean = false,
     val routeErrorMessage: String? = null,
     val homeFocus: List<HomeFocus> = listOf(
-        HomeFocus("Live steps", "8,421", "Keep moving to build your streak.", NeonGreen, Icons.Rounded.DirectionsWalk),
+        HomeFocus("Live steps", "8,421", "Keep moving to build your streak.", NeonGreen, Icons.AutoMirrored.Rounded.DirectionsWalk),
         HomeFocus("Focus", "Route run", "Start a guided run and collect points on the way.", NeonOrange, Icons.Rounded.Bolt)
     ),
     val dashboardMetrics: List<DashboardMetricItem> = listOf(
         DashboardMetricItem("Distance covered", "24.8 km", NeonBlue, Icons.Rounded.Route),
         DashboardMetricItem("Coins earned", "980", NeonOrange, Icons.Rounded.Toll),
         DashboardMetricItem("Calories burned", "1,420 kcal", NeonRed, Icons.Rounded.LocalFireDepartment),
-        DashboardMetricItem("Routes completed", "12", NeonGreen, Icons.Rounded.DirectionsWalk)
+        DashboardMetricItem("Routes completed", "12", NeonGreen, Icons.AutoMirrored.Rounded.DirectionsWalk)
     ),
     val recentRuns: List<RecentRunItem> = listOf(
         RecentRunItem("Morning Route", "Aug 8, 2026", "5.2 km", "450 pts"),
