@@ -92,10 +92,9 @@ fun LocationPickerScreen(
     var hasLocationPermission by remember { mutableStateOf(hasLocationPermission(context)) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
-    var pendingLocation by remember { mutableStateOf<LocationSuggestion?>(selectedLocation) }
-    val markerState = rememberUpdatedMarkerState(
-        position = parseLatLng(pendingLocation?.backendQuery.orEmpty()) ?: initialPoint
-    )
+    var markerPosition by remember(initialPoint) { mutableStateOf(initialPoint) }
+    var pendingLocation by remember { mutableStateOf<LocationSuggestion?>(null) }
+    val markerState = rememberUpdatedMarkerState(position = markerPosition)
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { grantResults ->
@@ -150,6 +149,7 @@ fun LocationPickerScreen(
                 mapToolbarEnabled = true
             ),
             onMapClick = { latLng ->
+                markerPosition = latLng
                 coroutineScope.launch {
                     isSearching = true
                     val pickedLocation = reverseGeocodeLocation(context, latLng)
@@ -195,6 +195,7 @@ fun LocationPickerScreen(
                         val searchResult = geocodeLocationName(context, searchQuery)
                         isSearching = false
                         if (searchResult != null) {
+                            markerPosition = LatLng(searchResult.latitude, searchResult.longitude)
                             pendingLocation = addressToLocationSuggestion(searchResult)
                             cameraPositionState.animate(
                                 CameraUpdateFactory.newLatLngZoom(
@@ -228,6 +229,7 @@ fun LocationPickerScreen(
                                 val searchResult = geocodeLocationName(context, searchQuery)
                                 isSearching = false
                                 if (searchResult != null) {
+                                    markerPosition = LatLng(searchResult.latitude, searchResult.longitude)
                                     pendingLocation = addressToLocationSuggestion(searchResult)
                                     cameraPositionState.animate(
                                         CameraUpdateFactory.newLatLngZoom(
@@ -422,10 +424,8 @@ private fun getBestLastKnownLocation(context: Context): Location? {
     val providers = runCatching { locationManager.getProviders(true) }.getOrDefault(emptyList())
     return providers.mapNotNull { provider ->
         runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull()
-    }.maxByOrNull(Location::getAccuracyScore)
+    }.minByOrNull { location -> location.accuracy.takeIf { it > 0f } ?: Float.MAX_VALUE }
 }
-
-private fun Location.getAccuracyScore(): Float = accuracy.takeIf { it > 0f }?.let { -it } ?: Float.NEGATIVE_INFINITY
 
 private fun formatCoordinateTitle(latLng: LatLng): String {
     return String.format(Locale.US, "Pinned point %.4f, %.4f", latLng.latitude, latLng.longitude)
