@@ -117,7 +117,7 @@ fun CalorieChaseApp(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = AppDestination.Home.route,
+                startDestination = AppDestination.Splash.route,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
