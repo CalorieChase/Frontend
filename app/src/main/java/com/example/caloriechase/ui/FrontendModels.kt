@@ -53,12 +53,6 @@ data class AchievementItem(
     val unlocked: Boolean
 )
 
-data class RoutePreset(
-    val title: String,
-    val supporting: String,
-    val distanceKm: Float
-)
-
 data class LocationSuggestion(
     val title: String,
     val address: String,

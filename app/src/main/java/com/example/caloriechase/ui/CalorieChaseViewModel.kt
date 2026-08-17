@@ -110,11 +110,6 @@ data class AppUiState(
         AchievementItem("Bridge collector", "Collect every coin on one route preview.", true),
         AchievementItem("Night route master", "Finish three evening routes this week.", false)
     ),
-    val routePresets: List<RoutePreset> = listOf(
-        RoutePreset("Quick energy reset", "A compact city mission for light movement.", 2.4f),
-        RoutePreset("Treasure hunter", "Balanced mid-distance route with healthy coin density.", 3.8f),
-        RoutePreset("Endurance push", "Longer route with more route surface to explore.", 5.6f)
-    ),
     val locationSuggestions: List<LocationSuggestion> = listOf(
         LocationSuggestion(
             "Civic Center Launch Pad",
@@ -180,13 +175,6 @@ class CalorieChaseViewModel(
 
     fun selectLocation(locationSuggestion: LocationSuggestion) {
         uiState = uiState.copy(selectedLocation = locationSuggestion)
-    }
-
-    fun applyPreset(preset: RoutePreset) {
-        uiState = uiState.copy(
-            selectedGoalType = GoalTypeUi.Distance,
-            selectedGoalValue = preset.distanceKm
-        )
     }
 
     fun clearRouteError() {

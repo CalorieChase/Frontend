@@ -230,7 +230,6 @@ fun CalorieChaseApp(
                 }
                 composable(AppDestination.RoutePlanner.route) {
                     RoutePlannerScreen(
-                        presets = state.routePresets,
                         selectedGoalType = state.selectedGoalType,
                         selectedGoalValue = state.selectedGoalValue,
                         selectedRouteType = state.selectedRouteType,
@@ -245,7 +244,6 @@ fun CalorieChaseApp(
                         onGoalValueChange = appViewModel::selectGoalValue,
                         onSelectRouteType = appViewModel::selectRouteType,
                         onDismissError = appViewModel::clearRouteError,
-                        onApplyPreset = appViewModel::applyPreset,
                         onGenerateRoute = {
                             appViewModel.generateRoute {
                                 navController.navigate(AppDestination.RoutePreview.route) {
