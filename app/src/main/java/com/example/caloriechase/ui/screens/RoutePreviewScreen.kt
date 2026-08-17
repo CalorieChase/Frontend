@@ -1,24 +1,38 @@
 package com.example.caloriechase.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.caloriechase.ui.RoutePoint
 import com.example.caloriechase.ui.RoutePreview
+import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.CheckpointCard
 import com.example.caloriechase.ui.components.MiniLegendRow
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.RouteMapCard
 import com.example.caloriechase.ui.components.ScreenColumn
-import com.example.caloriechase.ui.components.ScreenHeader
 import com.example.caloriechase.ui.components.SecondaryButton
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonGreen
+import java.util.Locale
+import kotlin.math.abs
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoutePreviewScreen(
     routePreview: RoutePreview,
@@ -27,32 +41,94 @@ fun RoutePreviewScreen(
     onRemixRoute: () -> Unit,
     onStartRun: () -> Unit
 ) {
-    ScreenColumn(
+    Scaffold(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(24.dp)
-    ) {
-        ScreenHeader(
-            title = "Route overview",
-            subtitle = "Preview the generated backend route before you jump into the live treasure session.",
-            onBack = onBack
-        )
-
-        SurfacePanel(emphasized = true) {
-            Text(
-                text = "${routePreview.activityType} mission ready • ${routePreview.coinSpots.size} coins • ${routePreview.scoreLabel}",
-                style = MaterialTheme.typography.titleMedium,
-                color = NeonGreen
+        topBar = {
+            TopAppBar(
+                title = { Text("Route Overview") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
             )
         }
+    ) { innerPadding ->
+        ScreenColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp)
+        ) {
+            SurfacePanel(emphasized = true) {
+                Text(
+                    text = "${routePreview.activityType} mission ready • ${routePreview.coinSpots.size} coins • ${routePreview.scoreLabel}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NeonGreen
+                )
+            }
 
-        RouteMapCard(routePreview = routePreview)
-        MiniLegendRow()
+            RouteMapCard(routePreview = routePreview)
+            MiniLegendRow()
 
-        routePreview.checkpoints.forEach { checkpoint ->
-            CheckpointCard(checkpoint = checkpoint)
+            SurfacePanel {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Endpoint",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = endpointTitle(routePreview.routePoints),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    BodyText(endpointDetail(routePreview.routePoints))
+                }
+            }
+
+            routePreview.checkpoints.forEach { checkpoint ->
+                CheckpointCard(checkpoint = checkpoint)
+            }
+
+            PrimaryButton(text = "Start route session", onClick = onStartRun)
+            SecondaryButton(text = "Generate another route", onClick = onRemixRoute)
         }
-
-        PrimaryButton(text = "Start route session", onClick = onStartRun)
-        SecondaryButton(text = "Generate another route", onClick = onRemixRoute)
     }
 }
+
+private fun endpointTitle(routePoints: List<RoutePoint>): String {
+    val start = routePoints.firstOrNull()
+    val end = routePoints.lastOrNull()
+    if (start == null || end == null) {
+        return "Endpoint unavailable"
+    }
+    if (isSamePoint(start, end)) {
+        return "Returns to starting point"
+    }
+    return String.format(Locale.US, "%.5f, %.5f", end.lat, end.lng)
+}
+
+private fun endpointDetail(routePoints: List<RoutePoint>): String {
+    val start = routePoints.firstOrNull()
+    val end = routePoints.lastOrNull()
+    if (start == null || end == null) {
+        return "This route response did not include enough coordinates to resolve the ending point."
+    }
+    if (isSamePoint(start, end)) {
+        return "This route ends where it began, so the finish point is the same as your selected starting location."
+    }
+    return "The generated route finishes at the coordinate above."
+}
+
+private fun isSamePoint(first: RoutePoint, second: RoutePoint): Boolean {
+    return abs(first.lat - second.lat) < 0.0001 &&
+        abs(first.lng - second.lng) < 0.0001
+}
+
