@@ -90,6 +90,7 @@ fun LocationPickerScreen(
         position = CameraPosition.fromLatLngZoom(initialPoint, 17f)
     }
     var hasLocationPermission by remember { mutableStateOf(hasLocationPermission(context)) }
+    var isMapLoaded by remember { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
     var markerPosition by remember(initialPoint) { mutableStateOf(initialPoint) }
@@ -105,8 +106,11 @@ fun LocationPickerScreen(
                 val currentLocation = getBestLastKnownLocation(context)
                 if (currentLocation != null) {
                     val currentLatLng = LatLng(currentLocation.latitude, currentLocation.longitude)
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngZoom(currentLatLng, 17f)
+                    moveCameraIfReady(
+                        cameraPositionState = cameraPositionState,
+                        isMapLoaded = isMapLoaded,
+                        latLng = currentLatLng,
+                        zoom = 17f
                     )
                 }
             }
@@ -124,11 +128,11 @@ fun LocationPickerScreen(
         } else {
             val currentLocation = getBestLastKnownLocation(context)
             if (currentLocation != null) {
-                cameraPositionState.animate(
-                    CameraUpdateFactory.newLatLngZoom(
-                        LatLng(currentLocation.latitude, currentLocation.longitude),
-                        17f
-                    )
+                moveCameraIfReady(
+                    cameraPositionState = cameraPositionState,
+                    isMapLoaded = isMapLoaded,
+                    latLng = LatLng(currentLocation.latitude, currentLocation.longitude),
+                    zoom = 17f
                 )
             }
         }
@@ -148,6 +152,9 @@ fun LocationPickerScreen(
                 compassEnabled = true,
                 mapToolbarEnabled = true
             ),
+            onMapLoaded = {
+                isMapLoaded = true
+            },
             onMapClick = { latLng ->
                 markerPosition = latLng
                 coroutineScope.launch {
@@ -197,11 +204,11 @@ fun LocationPickerScreen(
                         if (searchResult != null) {
                             markerPosition = LatLng(searchResult.latitude, searchResult.longitude)
                             pendingLocation = addressToLocationSuggestion(searchResult)
-                            cameraPositionState.animate(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(searchResult.latitude, searchResult.longitude),
-                                    17f
-                                )
+                            moveCameraIfReady(
+                                cameraPositionState = cameraPositionState,
+                                isMapLoaded = isMapLoaded,
+                                latLng = LatLng(searchResult.latitude, searchResult.longitude),
+                                zoom = 17f
                             )
                         }
                     }
@@ -231,11 +238,11 @@ fun LocationPickerScreen(
                                 if (searchResult != null) {
                                     markerPosition = LatLng(searchResult.latitude, searchResult.longitude)
                                     pendingLocation = addressToLocationSuggestion(searchResult)
-                                    cameraPositionState.animate(
-                                        CameraUpdateFactory.newLatLngZoom(
-                                            LatLng(searchResult.latitude, searchResult.longitude),
-                                            17f
-                                        )
+                                    moveCameraIfReady(
+                                        cameraPositionState = cameraPositionState,
+                                        isMapLoaded = isMapLoaded,
+                                        latLng = LatLng(searchResult.latitude, searchResult.longitude),
+                                        zoom = 17f
                                     )
                                 }
                             }
@@ -266,11 +273,11 @@ fun LocationPickerScreen(
                     coroutineScope.launch {
                         val currentLocation = getBestLastKnownLocation(context)
                         if (currentLocation != null) {
-                            cameraPositionState.animate(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(currentLocation.latitude, currentLocation.longitude),
-                                    17f
-                                )
+                            moveCameraIfReady(
+                                cameraPositionState = cameraPositionState,
+                                isMapLoaded = isMapLoaded,
+                                latLng = LatLng(currentLocation.latitude, currentLocation.longitude),
+                                zoom = 17f
                             )
                         }
                     }
@@ -425,6 +432,22 @@ private fun getBestLastKnownLocation(context: Context): Location? {
     return providers.mapNotNull { provider ->
         runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull()
     }.minByOrNull { location -> location.accuracy.takeIf { it > 0f } ?: Float.MAX_VALUE }
+}
+
+private suspend fun moveCameraIfReady(
+    cameraPositionState: com.google.maps.android.compose.CameraPositionState,
+    isMapLoaded: Boolean,
+    latLng: LatLng,
+    zoom: Float
+) {
+    if (!isMapLoaded) {
+        cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, zoom)
+        return
+    }
+
+    cameraPositionState.animate(
+        CameraUpdateFactory.newLatLngZoom(latLng, zoom)
+    )
 }
 
 private fun formatCoordinateTitle(latLng: LatLng): String {
