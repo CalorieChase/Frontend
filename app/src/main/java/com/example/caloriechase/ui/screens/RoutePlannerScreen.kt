@@ -5,21 +5,30 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.caloriechase.ui.GoalTypeUi
 import com.example.caloriechase.ui.LocationSuggestion
-import com.example.caloriechase.ui.RoutePreset
 import com.example.caloriechase.ui.RouteTypeUi
 import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.ScreenColumn
 import com.example.caloriechase.ui.components.ScreenHeader
-import com.example.caloriechase.ui.components.SelectableChip
 import com.example.caloriechase.ui.components.StatBadge
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonBlue
@@ -28,9 +37,9 @@ import com.example.caloriechase.ui.theme.NeonOrange
 import com.example.caloriechase.ui.theme.NeonRed
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoutePlannerScreen(
-    presets: List<RoutePreset>,
     selectedGoalType: GoalTypeUi,
     selectedGoalValue: Float,
     selectedRouteType: RouteTypeUi,
@@ -45,9 +54,10 @@ fun RoutePlannerScreen(
     onGoalValueChange: (Float) -> Unit,
     onSelectRouteType: (RouteTypeUi) -> Unit,
     onDismissError: () -> Unit,
-    onApplyPreset: (RoutePreset) -> Unit,
     onGenerateRoute: () -> Unit
 ) {
+    var goalDropdownExpanded by remember { mutableStateOf(false) }
+    var routeDropdownExpanded by remember { mutableStateOf(false) }
     val sliderRange = if (selectedGoalType == GoalTypeUi.Distance) 1.5f..8.0f else 80f..420f
     val sliderSteps = if (selectedGoalType == GoalTypeUi.Distance) 12 else 16
     val goalLabel = if (selectedGoalType == GoalTypeUi.Distance) {
@@ -89,34 +99,42 @@ fun RoutePlannerScreen(
         SurfacePanel {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "Goal type",
+                    text = "Goal and target",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ExposedDropdownMenuBox(
+                    expanded = goalDropdownExpanded,
+                    onExpandedChange = { goalDropdownExpanded = !goalDropdownExpanded }
                 ) {
-                    GoalTypeUi.entries.forEach { goalType ->
-                        SelectableChip(
-                            text = goalType.label,
-                            selected = goalType == selectedGoalType,
-                            onClick = { onSelectGoalType(goalType) },
-                            modifier = Modifier.weight(1f)
-                        )
+                    OutlinedTextField(
+                        value = selectedGoalType.label,
+                        onValueChange = {},
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        readOnly = true,
+                        label = { Text("Goal type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = goalDropdownExpanded)
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = goalDropdownExpanded,
+                        onDismissRequest = { goalDropdownExpanded = false }
+                    ) {
+                        GoalTypeUi.entries.forEach { goalType ->
+                            DropdownMenuItem(
+                                text = { Text(goalType.label) },
+                                onClick = {
+                                    goalDropdownExpanded = false
+                                    onSelectGoalType(goalType)
+                                }
+                            )
+                        }
                     }
                 }
-                BodyText(goalSupport)
-            }
-        }
-
-        SurfacePanel {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "Target",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
                 Text(
                     text = goalLabel,
                     style = MaterialTheme.typography.headlineMedium,
@@ -152,17 +170,36 @@ fun RoutePlannerScreen(
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ExposedDropdownMenuBox(
+                    expanded = routeDropdownExpanded,
+                    onExpandedChange = { routeDropdownExpanded = !routeDropdownExpanded }
                 ) {
-                    RouteTypeUi.entries.forEach { routeType ->
-                        SelectableChip(
-                            text = routeType.label,
-                            selected = routeType == selectedRouteType,
-                            onClick = { onSelectRouteType(routeType) },
-                            modifier = Modifier.weight(1f)
-                        )
+                    OutlinedTextField(
+                        value = selectedRouteType.label,
+                        onValueChange = {},
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        readOnly = true,
+                        label = { Text("Path type") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = routeDropdownExpanded)
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = routeDropdownExpanded,
+                        onDismissRequest = { routeDropdownExpanded = false }
+                    ) {
+                        RouteTypeUi.entries.forEach { routeType ->
+                            DropdownMenuItem(
+                                text = { Text(routeType.label) },
+                                onClick = {
+                                    routeDropdownExpanded = false
+                                    onSelectRouteType(routeType)
+                                }
+                            )
+                        }
                     }
                 }
                 BodyText(
@@ -185,23 +222,6 @@ fun RoutePlannerScreen(
                     )
                     BodyText(routeErrorMessage)
                     PrimaryButton(text = "Dismiss", onClick = onDismissError)
-                }
-            }
-        }
-
-        presets.forEach { preset ->
-            SurfacePanel {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = preset.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText(preset.supporting)
-                    PrimaryButton(
-                        text = "Use ${String.format("%.1f", preset.distanceKm)} km preset",
-                        onClick = { onApplyPreset(preset) }
-                    )
                 }
             }
         }
