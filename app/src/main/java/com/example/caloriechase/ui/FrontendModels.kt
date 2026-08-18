@@ -91,6 +91,8 @@ data class RouteCheckpoint(
 data class RoutePreview(
     val routeName: String,
     val activityType: String,
+    val totalDistanceKm: Double,
+    val estimatedActiveCalories: Int,
     val distanceLabel: String,
     val durationLabel: String,
     val caloriesLabel: String,
@@ -101,6 +103,19 @@ data class RoutePreview(
     val coinSpots: List<CoinSpot>,
     val routeTypeLabel: String,
     val routePolyline: String
+)
+
+data class RunSessionState(
+    val hasStarted: Boolean = false,
+    val isRunning: Boolean = false,
+    val isFinished: Boolean = false,
+    val elapsedMillis: Long = 0L,
+    val distanceMeters: Float = 0f,
+    val currentLocation: RoutePoint? = null,
+    val collectedCoinIndices: Set<Int> = emptySet(),
+    val score: Int = 0,
+    val lastCollectedCoinValue: Int? = null,
+    val finishDistanceMeters: Float? = null
 )
 
 data class RoutePlannerRequest(

@@ -1,5 +1,7 @@
 package com.example.caloriechase.ui
 
+import android.location.Location
+import android.os.SystemClock
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
@@ -17,12 +19,21 @@ import com.example.caloriechase.ui.theme.NeonGreen
 import com.example.caloriechase.ui.theme.NeonOrange
 import com.example.caloriechase.ui.theme.NeonRed
 import java.io.IOException
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 
 private const val WalkingSpeedKmPerHour = 4.8f
 private const val ActiveMet = 2.8f
+private const val MinimumTrackedMovementMeters = 1.2f
+private const val MaximumTrackedMovementMeters = 200f
+private const val CoinCollectionRadiusMeters = 15f
 
 data class AppUiState(
     val profile: UserProfile = UserProfile(
@@ -45,6 +56,8 @@ data class AppUiState(
     val activeRoute: RoutePreview = RoutePreview(
         routeName = "Adaptive Treasure Route",
         activityType = "Walk",
+        totalDistanceKm = 3.2,
+        estimatedActiveCalories = 140,
         distanceLabel = "3.2 km",
         durationLabel = "40 min",
         caloriesLabel = "140 kcal",
@@ -72,12 +85,7 @@ data class AppUiState(
         routeTypeLabel = "AUTO",
         routePolyline = ""
     ),
-    val runStats: List<RunStat> = listOf(
-        RunStat("Distance", "3.2 km"),
-        RunStat("Coins", "3"),
-        RunStat("Calories", "140 kcal"),
-        RunStat("Route", "AUTO")
-    ),
+    val runSession: RunSessionState = RunSessionState(),
     val isGeneratingRoute: Boolean = false,
     val routeErrorMessage: String? = null,
     val homeFocus: List<HomeFocus> = listOf(
@@ -140,6 +148,10 @@ data class AppUiState(
 class CalorieChaseViewModel(
     private val routeRepository: RouteRepository = RouteRepository()
 ) : ViewModel() {
+    private var runTimerJob: Job? = null
+    private var runStartedAtElapsedMs: Long = 0L
+    private var lastTrackedPoint: RoutePoint? = null
+
     var uiState by mutableStateOf(AppUiState())
         private set
 
@@ -202,11 +214,10 @@ class CalorieChaseViewModel(
                 uiState = uiState.copy(
                     isGeneratingRoute = false,
                     activeRoute = routePreview,
-                    runStats = buildRunStats(routePreview),
                     recentRuns = listOf(
                         RecentRunItem(
                             title = routePreview.routeName,
-                            date = "Aug 15, 2026",
+                            date = "August 15, 2026",
                             distance = routePreview.distanceLabel,
                             score = routePreview.scoreLabel
                         )
@@ -226,13 +237,136 @@ class CalorieChaseViewModel(
         }
     }
 
-    private fun buildRunStats(routePreview: RoutePreview): List<RunStat> {
-        return listOf(
-            RunStat("Distance", routePreview.distanceLabel),
-            RunStat("Coins", routePreview.coinSpots.size.toString()),
-            RunStat("Calories", routePreview.caloriesLabel),
-            RunStat("Route", routePreview.routeTypeLabel)
+    fun startRunSession() {
+        runTimerJob?.cancel()
+        runStartedAtElapsedMs = SystemClock.elapsedRealtime()
+        lastTrackedPoint = null
+
+        val startPoint = uiState.activeRoute.routePoints.firstOrNull()
+        val finishPoint = uiState.activeRoute.routePoints.lastOrNull()
+        uiState = uiState.copy(
+            runSession = RunSessionState(
+                hasStarted = true,
+                isRunning = true,
+                currentLocation = startPoint,
+                finishDistanceMeters = if (startPoint != null && finishPoint != null) {
+                    distanceBetweenPoints(startPoint, finishPoint)
+                } else {
+                    null
+                }
+            )
         )
+
+        runTimerJob = viewModelScope.launch {
+            while (isActive && uiState.runSession.isRunning) {
+                val elapsedMillis = SystemClock.elapsedRealtime() - runStartedAtElapsedMs
+                uiState = uiState.copy(
+                    runSession = uiState.runSession.copy(elapsedMillis = elapsedMillis)
+                )
+                delay(1_000)
+            }
+        }
+    }
+
+    fun updateRunLocation(latitude: Double, longitude: Double) {
+        if (!uiState.runSession.isRunning) {
+            return
+        }
+
+        val currentPoint = RoutePoint(lat = latitude, lng = longitude)
+        val session = uiState.runSession
+        var totalDistanceMeters = session.distanceMeters
+
+        lastTrackedPoint?.let { previousPoint ->
+            val traveledMeters = distanceBetweenPoints(previousPoint, currentPoint)
+            if (traveledMeters in MinimumTrackedMovementMeters..MaximumTrackedMovementMeters) {
+                totalDistanceMeters += traveledMeters
+            }
+        }
+        lastTrackedPoint = currentPoint
+
+        val collectedCoinIndices = session.collectedCoinIndices.toMutableSet()
+        var updatedScore = session.score
+        var lastCollectedCoinValue: Int? = null
+        uiState.activeRoute.coinSpots.forEachIndexed { index, coinSpot ->
+            if (index in collectedCoinIndices) {
+                return@forEachIndexed
+            }
+
+            val coinDistanceMeters = distanceBetweenPoints(
+                currentPoint,
+                RoutePoint(lat = coinSpot.lat, lng = coinSpot.lng)
+            )
+            if (coinDistanceMeters <= CoinCollectionRadiusMeters) {
+                collectedCoinIndices += index
+                updatedScore += coinSpot.value
+                lastCollectedCoinValue = coinSpot.value
+            }
+        }
+
+        val finishDistanceMeters = uiState.activeRoute.routePoints.lastOrNull()?.let { finishPoint ->
+            distanceBetweenPoints(currentPoint, finishPoint)
+        }
+
+        uiState = uiState.copy(
+            runSession = session.copy(
+                distanceMeters = totalDistanceMeters,
+                currentLocation = currentPoint,
+                collectedCoinIndices = collectedCoinIndices,
+                score = updatedScore,
+                lastCollectedCoinValue = lastCollectedCoinValue,
+                finishDistanceMeters = finishDistanceMeters
+            )
+        )
+    }
+
+    fun clearLastCollectedCoinValue() {
+        if (uiState.runSession.lastCollectedCoinValue == null) {
+            return
+        }
+
+        uiState = uiState.copy(
+            runSession = uiState.runSession.copy(lastCollectedCoinValue = null)
+        )
+    }
+
+    fun finishRunSession() {
+        if (!uiState.runSession.hasStarted) {
+            return
+        }
+
+        runTimerJob?.cancel()
+        val finalElapsedMillis = if (runStartedAtElapsedMs == 0L) {
+            uiState.runSession.elapsedMillis
+        } else {
+            SystemClock.elapsedRealtime() - runStartedAtElapsedMs
+        }
+
+        val finishedSession = uiState.runSession.copy(
+            isRunning = false,
+            isFinished = true,
+            elapsedMillis = finalElapsedMillis,
+            lastCollectedCoinValue = null
+        )
+
+        uiState = uiState.copy(
+            runSession = finishedSession,
+            recentRuns = listOf(
+                RecentRunItem(
+                    title = uiState.activeRoute.routeName,
+                    date = formatSessionDate(LocalDate.now()),
+                    distance = formatDistanceLabel(finishedSession.distanceMeters),
+                    score = "${finishedSession.score} pts"
+                )
+            ) + uiState.recentRuns.take(2)
+        )
+    }
+
+    fun cancelRunSession() {
+        runTimerJob?.cancel()
+        runStartedAtElapsedMs = 0L
+        lastTrackedPoint = null
+        uiState = uiState.copy(runSession = RunSessionState())
     }
 
     private fun distanceToActiveCalories(distanceKm: Float, weightKg: Int): Float {
@@ -243,5 +377,25 @@ class CalorieChaseViewModel(
     private fun activeCaloriesToDistance(activeCalories: Float, weightKg: Int): Float {
         val timeHours = activeCalories / (ActiveMet * weightKg)
         return timeHours * WalkingSpeedKmPerHour
+    }
+
+    private fun distanceBetweenPoints(first: RoutePoint, second: RoutePoint): Float {
+        val distanceResults = FloatArray(1)
+        Location.distanceBetween(
+            first.lat,
+            first.lng,
+            second.lat,
+            second.lng,
+            distanceResults
+        )
+        return distanceResults[0]
+    }
+
+    private fun formatDistanceLabel(distanceMeters: Float): String {
+        return String.format(Locale.US, "%.1f km", distanceMeters / 1_000f)
+    }
+
+    private fun formatSessionDate(date: LocalDate): String {
+        return date.format(DateTimeFormatter.ofPattern("MMMM d, uuuu", Locale.US))
     }
 }

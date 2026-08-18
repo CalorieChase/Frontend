@@ -34,6 +34,8 @@ class RouteRepository(
                 else -> "Adaptive Treasure Route"
             },
             activityType = "Walk",
+            totalDistanceKm = response.totalDistanceKm,
+            estimatedActiveCalories = response.estimatedActiveCalories.roundToInt(),
             distanceLabel = String.format("%.1f km", response.totalDistanceKm),
             durationLabel = "$durationMinutes min",
             caloriesLabel = "${response.estimatedActiveCalories.roundToInt()} kcal",
