@@ -268,30 +268,47 @@ fun CalorieChaseApp(
                         modifier = Modifier.fillMaxSize(),
                         onBack = { navController.popBackStack() },
                         onRemixRoute = { navController.popBackStack() },
-                        onStartRun = { navController.navigate(AppDestination.ActiveRun.route) }
+                        onStartRun = {
+                            appViewModel.startRunSession()
+                            navController.navigate(AppDestination.ActiveRun.route)
+                        }
                     )
                 }
                 composable(AppDestination.ActiveRun.route) {
                     ActiveRunScreen(
                         routePreview = state.activeRoute,
-                        stats = state.runStats,
+                        runSession = state.runSession,
+                        weightKg = state.profile.weightKg,
                         modifier = Modifier.fillMaxSize(),
-                        onBack = { navController.popBackStack() },
-                        onFinishRun = { navController.navigate(AppDestination.RunSummary.route) }
+                        onBack = {
+                            appViewModel.cancelRunSession()
+                            navController.popBackStack()
+                        },
+                        onLocationUpdate = appViewModel::updateRunLocation,
+                        onCoinCelebrationShown = appViewModel::clearLastCollectedCoinValue,
+                        onFinishRun = {
+                            appViewModel.finishRunSession()
+                            navController.navigate(AppDestination.RunSummary.route) {
+                                launchSingleTop = true
+                            }
+                        }
                     )
                 }
                 composable(AppDestination.RunSummary.route) {
                     RunSummaryScreen(
                         routePreview = state.activeRoute,
-                        stats = state.runStats,
+                        runSession = state.runSession,
+                        weightKg = state.profile.weightKg,
                         modifier = Modifier.fillMaxSize(),
                         onBackHome = {
+                            appViewModel.cancelRunSession()
                             navController.navigate(AppDestination.Home.route) {
                                 popUpTo(AppDestination.Home.route) { inclusive = false }
                                 launchSingleTop = true
                             }
                         },
                         onTryAnother = {
+                            appViewModel.cancelRunSession()
                             navController.navigate(AppDestination.RoutePlanner.route) {
                                 popUpTo(AppDestination.Home.route)
                             }
