@@ -42,7 +42,7 @@ import com.example.caloriechase.ui.theme.SurfaceOutline
 @Composable
 fun ScreenColumn(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
     applySafeDrawingInsets: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
