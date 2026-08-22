@@ -13,13 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.LockOpen
-import androidx.compose.material.icons.rounded.Map
-import androidx.compose.material.icons.rounded.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -231,84 +227,6 @@ fun CoachScreen(
         }
         item {
             PrimaryButton(text = "Generate route suggestion", onClick = onPlanRoute)
-        }
-    }
-}
-
-@Composable
-fun Map3DPreviewScreen(
-    modifier: Modifier = Modifier,
-    onBack: () -> Unit
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            ScreenHeader(
-                title = "3D map preview",
-                subtitle = "A frontend-only stand-in for the old experimental map controls.",
-                onBack = onBack
-            )
-        }
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(260.dp)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
-                    .border(1.dp, SurfaceOutline, RoundedCornerShape(28.dp))
-            ) {
-                listOf(
-                    Triple(Icons.Rounded.Map, "Map style", NeonBlue),
-                    Triple(Icons.Rounded.WorkspacePremium, "3D tilt", NeonOrange),
-                    Triple(Icons.Rounded.LockOpen, "Compass", NeonGreen)
-                ).forEachIndexed { index, item ->
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(start = 24.dp + (index * 90).dp, top = 28.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .background(item.third.copy(alpha = 0.14f), CircleShape)
-                                .border(1.dp, item.third.copy(alpha = 0.4f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(item.first, contentDescription = null, tint = item.third)
-                        }
-                        Text(item.second, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            }
-        }
-        item {
-            SurfacePanel {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Preview notes",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText("This screen is intentionally placeholder-only until live Maps integration is brought over.")
-                }
-            }
-        }
-        item {
-            SurfacePanel(emphasized = true) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Controls to port later",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText("Tilt, heading, zoom, and map style toggles will map naturally onto this shell once the live map layer is restored.")
-                }
-            }
         }
     }
 }

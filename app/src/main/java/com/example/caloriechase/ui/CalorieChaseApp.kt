@@ -39,7 +39,6 @@ import com.example.caloriechase.ui.screens.DashboardPlaceholderScreen
 import com.example.caloriechase.ui.screens.HomePlaceholderScreen
 import com.example.caloriechase.ui.screens.LocationPickerScreen
 import com.example.caloriechase.ui.screens.LoginScreen
-import com.example.caloriechase.ui.screens.Map3DPreviewScreen
 import com.example.caloriechase.ui.screens.OnboardingScreen
 import com.example.caloriechase.ui.screens.ProgressScreen
 import com.example.caloriechase.ui.screens.RegisterScreen
@@ -312,12 +311,6 @@ fun CalorieChaseApp(
                                 popUpTo(AppDestination.Home.route)
                             }
                         }
-                    )
-                }
-                composable(AppDestination.Map3DPreview.route) {
-                    Map3DPreviewScreen(
-                        modifier = Modifier.fillMaxSize(),
-                        onBack = { navController.popBackStack() }
                     )
                 }
             }

@@ -16,5 +16,4 @@ sealed class AppDestination(val route: String) {
     data object RoutePreview : AppDestination("route_preview")
     data object ActiveRun : AppDestination("active_run")
     data object RunSummary : AppDestination("run_summary")
-    data object Map3DPreview : AppDestination("map_3d_preview")
 }
