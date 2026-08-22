@@ -29,7 +29,7 @@ import com.example.caloriechase.ui.ProgressHighlight
 import com.example.caloriechase.ui.TreasureSpot
 import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.PrimaryButton
-import com.example.caloriechase.ui.components.ScreenHeader
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonBlue
 import com.example.caloriechase.ui.theme.NeonGreen
@@ -41,50 +41,53 @@ import com.example.caloriechase.ui.theme.SurfaceOutline
 fun TreasureScreen(
     treasures: List<TreasureSpot>,
     modifier: Modifier = Modifier,
+    onBack: () -> Unit,
     onPlanRoute: () -> Unit
 ) {
-    LazyColumn(
+    ScreenScaffold(
+        title = "Treasure",
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            ScreenHeader(
-                title = "Treasure board",
-                subtitle = "Ported from the legacy treasure surface using collectible placeholders."
-            )
-        }
-        item {
-            SurfacePanel(emphasized = true) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Featured hunt",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText("The Bridge Crown route has the highest reward density in today’s placeholder rotation.")
+        onBack = onBack
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                SurfacePanel(emphasized = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Featured hunt",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        BodyText("The Bridge Crown route has the highest reward density in today's placeholder rotation.")
+                    }
                 }
             }
-        }
-        items(treasures) { treasure ->
-            SurfacePanel {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = treasure.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText(treasure.subtitle)
-                    Text(
-                        text = "${treasure.reward} • ${treasure.distanceAway}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = NeonOrange
-                    )
+            items(treasures) { treasure ->
+                SurfacePanel {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = treasure.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        BodyText(treasure.subtitle)
+                        Text(
+                            text = "${treasure.reward} • ${treasure.distanceAway}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = NeonOrange
+                        )
+                    }
                 }
             }
-        }
-        item {
-            PrimaryButton(text = "Plan treasure route", onClick = onPlanRoute)
+            item {
+                PrimaryButton(text = "Plan treasure route", onClick = onPlanRoute)
+            }
         }
     }
 }
@@ -93,74 +96,77 @@ fun TreasureScreen(
 fun ProgressScreen(
     highlights: List<ProgressHighlight>,
     achievements: List<AchievementItem>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit
 ) {
-    LazyColumn(
+    ScreenScaffold(
+        title = "Progress",
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            ScreenHeader(
-                title = "Progress",
-                subtitle = "A fuller Compose version of the legacy progress screen with weekly summaries and achievements."
-            )
-        }
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
-                    .border(1.dp, SurfaceOutline, RoundedCornerShape(28.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Weekly consistency chart placeholder",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = NeonBlue
-                )
-            }
-        }
-        items(highlights) { highlight ->
-            SurfacePanel(emphasized = true) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        onBack = onBack
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
+                        .border(1.dp, SurfaceOutline, RoundedCornerShape(28.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = highlight.title,
+                        text = "Weekly consistency chart placeholder",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = NeonBlue
                     )
-                    Text(
-                        text = highlight.value,
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = NeonGreen
-                    )
-                    BodyText(highlight.supporting)
                 }
             }
-        }
-        item {
-            Text(
-                text = "Achievements",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
-        }
-        items(achievements) { achievement ->
-            SurfacePanel {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = achievement.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText(achievement.description)
-                    Text(
-                        text = if (achievement.unlocked) "Unlocked" else "Locked",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (achievement.unlocked) NeonGreen else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            items(highlights) { highlight ->
+                SurfacePanel(emphasized = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = highlight.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = highlight.value,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = NeonGreen
+                        )
+                        BodyText(highlight.supporting)
+                    }
+                }
+            }
+            item {
+                Text(
+                    text = "Achievements",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+            items(achievements) { achievement ->
+                SurfacePanel {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = achievement.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        BodyText(achievement.description)
+                        Text(
+                            text = if (achievement.unlocked) "Unlocked" else "Locked",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = if (achievement.unlocked) NeonGreen else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -171,62 +177,65 @@ fun ProgressScreen(
 fun CoachScreen(
     tips: List<CoachTip>,
     modifier: Modifier = Modifier,
+    onBack: () -> Unit,
     onPlanRoute: () -> Unit
 ) {
-    LazyColumn(
+    ScreenScaffold(
+        title = "Coach",
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            ScreenHeader(
-                title = "AI coach",
-                subtitle = "This replaces the old AI fragment with a more polished coaching and route guidance surface."
-            )
-        }
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
-                    .border(1.dp, SurfaceOutline, RoundedCornerShape(28.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.AutoAwesome,
-                    contentDescription = null,
-                    tint = NeonPurple,
-                    modifier = Modifier.size(48.dp)
-                )
-            }
-        }
-        item {
-            SurfacePanel(emphasized = true) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Today’s recommendation",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
+        onBack = onBack
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
+                        .border(1.dp, SurfaceOutline, RoundedCornerShape(28.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.AutoAwesome,
+                        contentDescription = null,
+                        tint = NeonPurple,
+                        modifier = Modifier.size(48.dp)
                     )
-                    BodyText("A mid-distance jog route is the best placeholder match for recovery and streak protection today.")
                 }
             }
-        }
-        items(tips) { tip ->
-            SurfacePanel {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = tip.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText(tip.message)
+            item {
+                SurfacePanel(emphasized = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Today's recommendation",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        BodyText("A mid-distance jog route is the best placeholder match for recovery and streak protection today.")
+                    }
                 }
             }
-        }
-        item {
-            PrimaryButton(text = "Generate route suggestion", onClick = onPlanRoute)
+            items(tips) { tip ->
+                SurfacePanel {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = tip.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        BodyText(tip.message)
+                    }
+                }
+            }
+            item {
+                PrimaryButton(text = "Generate route suggestion", onClick = onPlanRoute)
+            }
         }
     }
 }

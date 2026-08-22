@@ -203,6 +203,7 @@ fun CalorieChaseApp(
                     TreasureScreen(
                         treasures = state.treasures,
                         modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() },
                         onPlanRoute = { navController.navigate(AppDestination.RoutePlanner.route) }
                     )
                 }
@@ -210,13 +211,15 @@ fun CalorieChaseApp(
                     ProgressScreen(
                         highlights = state.progressHighlights,
                         achievements = state.achievements,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() }
                     )
                 }
                 composable(AppDestination.Coach.route) {
                     CoachScreen(
                         tips = state.coachTips,
                         modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() },
                         onPlanRoute = { navController.navigate(AppDestination.RoutePlanner.route) }
                     )
                 }
