@@ -195,6 +195,7 @@ fun CalorieChaseApp(
                         profile = state.profile,
                         focusCards = state.homeFocus,
                         modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() },
                         onPlanRoute = { navController.navigate(AppDestination.RoutePlanner.route) }
                     )
                 }
@@ -223,7 +224,8 @@ fun CalorieChaseApp(
                     DashboardPlaceholderScreen(
                         metrics = state.dashboardMetrics,
                         recentRuns = state.recentRuns,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() }
                     )
                 }
                 composable(AppDestination.RoutePlanner.route) {

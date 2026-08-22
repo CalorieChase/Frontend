@@ -16,14 +16,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -63,7 +60,7 @@ import com.example.caloriechase.ui.RoutePoint
 import com.example.caloriechase.ui.UserProfile
 import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.PrimaryButton
-import com.example.caloriechase.ui.components.SecondaryButton
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.DarkCardElevated
 import com.example.caloriechase.ui.theme.NeonBlue
@@ -89,99 +86,106 @@ fun HomePlaceholderScreen(
     profile: UserProfile,
     focusCards: List<HomeFocus>,
     modifier: Modifier = Modifier,
+    onBack: () -> Unit,
     onPlanRoute: () -> Unit
 ) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.safeDrawing),
-        contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            SurfacePanel(emphasized = true) {
+    ScreenScaffold(
+        title = "Home",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBack
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                SurfacePanel(emphasized = true) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "Today",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = NeonBlue
+                            )
+                            Text(
+                                text = "Good morning, ${profile.name}!",
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            BodyText("Stay consistent today. Your route, pace, and progress are ready.")
+                            Text(
+                                text = "${profile.levelTitle} - ${profile.streakDays}-day streak",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = NeonGreen
+                            )
+                        }
+                        IconButton(
+                            onClick = {},
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.NotificationsNone,
+                                contentDescription = "Notifications",
+                                tint = NeonOrange
+                            )
+                        }
+                    }
+                }
+            }
+
+            item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "Today",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = NeonBlue
-                        )
-                        Text(
-                            text = "Good morning, ${profile.name}!",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        BodyText("Stay consistent today. Your route, pace, and progress are ready.")
-                        Text(
-                            text = "${profile.levelTitle} - ${profile.streakDays}-day streak",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = NeonGreen
-                        )
-                    }
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.NotificationsNone,
-                            contentDescription = "Notifications",
-                            tint = NeonOrange
+                    focusCards.forEach { card ->
+                        HomeFocusCard(
+                            modifier = Modifier.weight(1f),
+                            label = card.label,
+                            value = card.value,
+                            supporting = card.supporting,
+                            accent = card.accent,
+                            icon = card.icon
                         )
                     }
                 }
             }
-        }
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                focusCards.forEach { card ->
-                    HomeFocusCard(
-                        modifier = Modifier.weight(1f),
-                        label = card.label,
-                        value = card.value,
-                        supporting = card.supporting,
-                        accent = card.accent,
-                        icon = card.icon
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Current location",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "Live map",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = NeonBlue
                     )
                 }
             }
-        }
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Current location",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "Live map",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = NeonBlue
-                )
+            item {
+                HomeLocationMapCard()
             }
-        }
 
-        item {
-            HomeLocationMapCard()
-        }
-
-        item {
-            PrimaryButton(text = "Start guided route", onClick = onPlanRoute)
+            item {
+                PrimaryButton(text = "Start guided route", onClick = onPlanRoute)
+            }
         }
     }
 }
@@ -190,80 +194,87 @@ fun HomePlaceholderScreen(
 fun DashboardPlaceholderScreen(
     metrics: List<DashboardMetricItem>,
     recentRuns: List<RecentRunItem>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit
 ) {
     val selectedDay = remember { LocalDate.now().dayOfWeek }
     val updatedDateLabel = remember { formatDashboardDate(LocalDate.now()) }
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.safeDrawing),
-        contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 120.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item {
-            SurfacePanel(emphasized = true) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    ScreenScaffold(
+        title = "Dashboard",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBack
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                SurfacePanel(emphasized = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "Performance overview",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = NeonBlue
+                        )
+                        Text(
+                            text = "Dashboard",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        BodyText("Track how your recent runs are stacking up across distance, rewards, calories, and consistency.")
+                        Text(
+                            text = "Updated for $updatedDateLabel",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = NeonGreen
+                        )
+                    }
+                }
+            }
+
+            items(metrics.chunked(2)) { rowMetrics ->
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    rowMetrics.forEach { metric ->
+                        MetricCard(
+                            modifier = Modifier.weight(1f),
+                            metric = metric
+                        )
+                    }
+                    if (rowMetrics.size == 1) {
+                        Box(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+
+            item {
+                WeeklyRhythmCard(selectedDay = selectedDay)
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = "Performance overview",
+                        text = "Recent runs",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "Last ${recentRuns.size}",
                         style = MaterialTheme.typography.labelLarge,
                         color = NeonBlue
                     )
-                    Text(
-                        text = "Dashboard",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText("Track how your recent runs are stacking up across distance, rewards, calories, and consistency.")
-                    Text(
-                        text = "Updated for $updatedDateLabel",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = NeonGreen
-                    )
                 }
             }
-        }
 
-        items(metrics.chunked(2)) { rowMetrics ->
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                rowMetrics.forEach { metric ->
-                    MetricCard(
-                        modifier = Modifier.weight(1f),
-                        metric = metric
-                    )
-                }
-                if (rowMetrics.size == 1) {
-                    Box(modifier = Modifier.weight(1f))
-                }
+            items(recentRuns) { run ->
+                RecentRunCard(run = run)
             }
-        }
-
-        item {
-            WeeklyRhythmCard(selectedDay = selectedDay)
-        }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Recent runs",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "Last ${recentRuns.size}",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = NeonBlue
-                )
-            }
-        }
-
-        items(recentRuns) { run ->
-            RecentRunCard(run = run)
         }
     }
 }
