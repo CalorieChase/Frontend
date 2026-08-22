@@ -2,8 +2,8 @@ package com.example.caloriechase.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,8 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.caloriechase.ui.theme.DarkSurface
 import com.example.caloriechase.ui.theme.SurfaceOutline
 
 @Composable
@@ -56,30 +58,40 @@ fun CalorieTopAppBar(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        tonalElevation = 2.dp,
-        shadowElevation = 2.dp
+        color = DarkSurface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .height(52.dp)
-                .padding(horizontal = 8.dp),
+                .height(44.dp)
+                .drawBehind {
+                    drawLine(
+                        color = SurfaceOutline,
+                        start = androidx.compose.ui.geometry.Offset(0f, size.height),
+                        end = androidx.compose.ui.geometry.Offset(size.width, size.height),
+                        strokeWidth = 1.dp.toPx()
+                    )
+                }
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IconButton(
                 onClick = onBack,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(36.dp)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back"
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
