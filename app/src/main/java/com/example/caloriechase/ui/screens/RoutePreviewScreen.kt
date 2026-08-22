@@ -43,7 +43,7 @@ fun RoutePreviewScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
             applySafeDrawingInsets = false
         ) {
             SurfacePanel(emphasized = true) {
