@@ -3,7 +3,6 @@ package com.example.caloriechase.ui
 import android.location.Location
 import android.os.SystemClock
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.automirrored.rounded.DirectionsWalk
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Route
@@ -90,7 +89,7 @@ data class AppUiState(
     val routeErrorMessage: String? = null,
     val homeFocus: List<HomeFocus> = listOf(
         HomeFocus("Live steps", "8,421", "Keep moving to build your streak.", NeonGreen, Icons.AutoMirrored.Rounded.DirectionsWalk),
-        HomeFocus("Focus", "Route run", "Start a guided run and collect points on the way.", NeonOrange, Icons.Rounded.Bolt)
+        HomeFocus("Calories", "426 kcal", "Active burn tracked across today's movement.", NeonRed, Icons.Rounded.LocalFireDepartment)
     ),
     val dashboardMetrics: List<DashboardMetricItem> = listOf(
         DashboardMetricItem("Distance covered", "24.8 km", NeonBlue, Icons.Rounded.Route),
