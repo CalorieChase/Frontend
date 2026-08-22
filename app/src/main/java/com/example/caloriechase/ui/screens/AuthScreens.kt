@@ -110,7 +110,7 @@ fun LoginScreen(
                                         "Show password"
                                     }
                                 )
-                            )
+                            }
                         }
                     )
                 }
@@ -218,7 +218,7 @@ fun RegisterScreen(
                                         "Show password"
                                     }
                                 )
-                            )
+                            }
                         }
                     )
                 }

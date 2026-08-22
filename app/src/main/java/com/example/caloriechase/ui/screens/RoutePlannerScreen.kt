@@ -5,8 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -66,12 +65,6 @@ fun RoutePlannerScreen(
     } else {
         "${selectedGoalValue.roundToInt()} kcal"
     }
-    val goalSupport = if (selectedGoalType == GoalTypeUi.Distance) {
-        "The backend uses this distance directly for route generation."
-    } else {
-        "The backend converts this calorie target into a walking distance before routing."
-    }
-
     ScreenScaffold(
         title = "Plan Route",
         modifier = modifier.fillMaxSize(),
