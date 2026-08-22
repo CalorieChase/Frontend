@@ -196,8 +196,7 @@ fun CalorieChaseApp(
                         profile = state.profile,
                         focusCards = state.homeFocus,
                         modifier = Modifier.fillMaxSize(),
-                        onPlanRoute = { navController.navigate(AppDestination.RoutePlanner.route) },
-                        onOpenMapPreview = { navController.navigate(AppDestination.Map3DPreview.route) }
+                        onPlanRoute = { navController.navigate(AppDestination.RoutePlanner.route) }
                     )
                 }
                 composable(AppDestination.Treasure.route) {

@@ -89,8 +89,7 @@ fun HomePlaceholderScreen(
     profile: UserProfile,
     focusCards: List<HomeFocus>,
     modifier: Modifier = Modifier,
-    onPlanRoute: () -> Unit,
-    onOpenMapPreview: () -> Unit
+    onPlanRoute: () -> Unit
 ) {
     LazyColumn(
         modifier = modifier
@@ -183,10 +182,6 @@ fun HomePlaceholderScreen(
 
         item {
             PrimaryButton(text = "Start guided route", onClick = onPlanRoute)
-        }
-
-        item {
-            SecondaryButton(text = "Try 3D map preview", onClick = onOpenMapPreview)
         }
     }
 }
