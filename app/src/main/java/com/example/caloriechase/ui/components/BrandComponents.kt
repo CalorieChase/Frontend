@@ -43,11 +43,18 @@ import com.example.caloriechase.ui.theme.SurfaceOutline
 fun ScreenColumn(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+    applySafeDrawingInsets: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
         modifier = modifier
-            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .then(
+                if (applySafeDrawingInsets) {
+                    Modifier.windowInsetsPadding(WindowInsets.safeDrawing)
+                } else {
+                    Modifier
+                }
+            )
             .verticalScroll(rememberScrollState())
             .padding(contentPadding),
         verticalArrangement = Arrangement.spacedBy(20.dp),
