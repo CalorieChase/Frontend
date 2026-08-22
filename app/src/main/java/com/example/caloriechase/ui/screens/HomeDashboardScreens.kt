@@ -1,6 +1,14 @@
 package com.example.caloriechase.ui.screens
 
-import androidx.compose.foundation.Canvas
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Looper
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +23,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,37 +30,36 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsRun
-import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.NotificationsNone
-import androidx.compose.material.icons.rounded.Route
-import androidx.compose.material.icons.rounded.DirectionsWalk
-import androidx.compose.material.icons.rounded.Toll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.example.caloriechase.ui.DashboardMetricItem
 import com.example.caloriechase.ui.HomeFocus
 import com.example.caloriechase.ui.RecentRunItem
+import com.example.caloriechase.ui.RoutePoint
 import com.example.caloriechase.ui.UserProfile
 import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.PrimaryButton
@@ -63,10 +69,20 @@ import com.example.caloriechase.ui.theme.DarkCardElevated
 import com.example.caloriechase.ui.theme.NeonBlue
 import com.example.caloriechase.ui.theme.NeonGreen
 import com.example.caloriechase.ui.theme.NeonOrange
-import com.example.caloriechase.ui.theme.NeonRed
 import com.example.caloriechase.ui.theme.SurfaceOutline
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun HomePlaceholderScreen(
@@ -76,8 +92,6 @@ fun HomePlaceholderScreen(
     onPlanRoute: () -> Unit,
     onOpenMapPreview: () -> Unit
 ) {
-    val selectedDay = remember { LocalDate.now().dayOfWeek }
-
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -105,7 +119,7 @@ fun HomePlaceholderScreen(
                         )
                         BodyText("Stay consistent today. Your route, pace, and progress are ready.")
                         Text(
-                            text = "${profile.levelTitle} • ${profile.streakDays}-day streak",
+                            text = "${profile.levelTitle} - ${profile.streakDays}-day streak",
                             style = MaterialTheme.typography.labelLarge,
                             color = NeonGreen
                         )
@@ -127,7 +141,10 @@ fun HomePlaceholderScreen(
         }
 
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 focusCards.forEach { card ->
                     HomeFocusCard(
                         modifier = Modifier.weight(1f),
@@ -142,46 +159,12 @@ fun HomePlaceholderScreen(
         }
 
         item {
-            SurfacePanel {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(
-                        text = "Weekly rhythm",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    BodyText("Use the week at a glance to stay intentional with your training.")
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        val days = listOf(
-                            DayOfWeek.MONDAY to "Mon",
-                            DayOfWeek.TUESDAY to "Tue",
-                            DayOfWeek.WEDNESDAY to "Wed",
-                            DayOfWeek.THURSDAY to "Thu",
-                            DayOfWeek.FRIDAY to "Fri",
-                            DayOfWeek.SATURDAY to "Sat",
-                            DayOfWeek.SUNDAY to "Sun"
-                        )
-                        days.forEach { (day, label) ->
-                            DayChip(
-                                modifier = Modifier.weight(1f),
-                                label = label,
-                                selected = day == selectedDay
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Route preview",
+                    text = "Current location",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
@@ -195,7 +178,7 @@ fun HomePlaceholderScreen(
         }
 
         item {
-            RoutePreviewCard()
+            HomeLocationMapCard()
         }
 
         item {
@@ -214,6 +197,9 @@ fun DashboardPlaceholderScreen(
     recentRuns: List<RecentRunItem>,
     modifier: Modifier = Modifier
 ) {
+    val selectedDay = remember { LocalDate.now().dayOfWeek }
+    val updatedDateLabel = remember { formatDashboardDate(LocalDate.now()) }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -236,7 +222,7 @@ fun DashboardPlaceholderScreen(
                     )
                     BodyText("Track how your recent runs are stacking up across distance, rewards, calories, and consistency.")
                     Text(
-                        text = "Updated for Sunday, August 9, 2026",
+                        text = "Updated for $updatedDateLabel",
                         style = MaterialTheme.typography.labelLarge,
                         color = NeonGreen
                     )
@@ -256,6 +242,10 @@ fun DashboardPlaceholderScreen(
                     Box(modifier = Modifier.weight(1f))
                 }
             }
+        }
+
+        item {
+            WeeklyRhythmCard(selectedDay = selectedDay)
         }
 
         item {
@@ -293,7 +283,7 @@ private fun HomeFocusCard(
     icon: ImageVector
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.height(170.dp),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         border = androidx.compose.foundation.BorderStroke(1.dp, SurfaceOutline)
@@ -312,6 +302,41 @@ private fun HomeFocusCard(
                 color = MaterialTheme.colorScheme.onBackground
             )
             BodyText(supporting)
+        }
+    }
+}
+
+@Composable
+private fun WeeklyRhythmCard(selectedDay: DayOfWeek) {
+    SurfacePanel {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Text(
+                text = "Weekly rhythm",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            BodyText("Use the week at a glance to stay intentional with your training.")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                val days = listOf(
+                    DayOfWeek.MONDAY to "Mon",
+                    DayOfWeek.TUESDAY to "Tue",
+                    DayOfWeek.WEDNESDAY to "Wed",
+                    DayOfWeek.THURSDAY to "Thu",
+                    DayOfWeek.FRIDAY to "Fri",
+                    DayOfWeek.SATURDAY to "Sat",
+                    DayOfWeek.SUNDAY to "Sun"
+                )
+                days.forEach { (day, label) ->
+                    DayChip(
+                        modifier = Modifier.weight(1f),
+                        label = label,
+                        selected = day == selectedDay
+                    )
+                }
+            }
         }
     }
 }
@@ -351,105 +376,141 @@ private fun DayChip(
 }
 
 @Composable
-private fun RoutePreviewCard() {
+private fun HomeLocationMapCard() {
+    val context = LocalContext.current
+    val defaultPoint = remember { RoutePoint(37.7793, -122.4193) }
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(defaultPoint.lat, defaultPoint.lng), 14f)
+    }
+    var currentLocation by remember { mutableStateOf<RoutePoint?>(null) }
+    var hasLocationPermission by remember { mutableStateOf(hasLocationPermission(context)) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { grantResults ->
+        hasLocationPermission = grantResults[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            grantResults[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+    }
+
+    LaunchedEffect(Unit) {
+        if (!hasLocationPermission) {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
+    DisposableEffect(hasLocationPermission) {
+        if (!hasLocationPermission) {
+            onDispose { }
+        } else {
+            val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+            val listener = LocationListener { location ->
+                currentLocation = RoutePoint(location.latitude, location.longitude)
+            }
+
+            if (locationManager != null) {
+                getBestLastKnownLocation(context)?.let { lastKnownLocation ->
+                    currentLocation = RoutePoint(lastKnownLocation.latitude, lastKnownLocation.longitude)
+                }
+
+                runCatching { locationManager.getProviders(true) }.getOrDefault(emptyList()).forEach { provider ->
+                    runCatching {
+                        locationManager.requestLocationUpdates(
+                            provider,
+                            5_000L,
+                            10f,
+                            listener,
+                            Looper.getMainLooper()
+                        )
+                    }
+                }
+            }
+
+            onDispose {
+                if (locationManager != null) {
+                    runCatching { locationManager.removeUpdates(listener) }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(currentLocation) {
+        val point = currentLocation ?: return@LaunchedEffect
+        cameraPositionState.position = CameraPosition.fromLatLngZoom(LatLng(point.lat, point.lng), 16f)
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(320.dp),
+            .height(240.dp),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = DarkCardElevated),
         border = androidx.compose.foundation.BorderStroke(1.dp, SurfaceOutline)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val pathPoints = listOf(
-                    Offset(size.width * 0.18f, size.height * 0.72f),
-                    Offset(size.width * 0.32f, size.height * 0.55f),
-                    Offset(size.width * 0.44f, size.height * 0.62f),
-                    Offset(size.width * 0.58f, size.height * 0.36f),
-                    Offset(size.width * 0.72f, size.height * 0.48f),
-                    Offset(size.width * 0.84f, size.height * 0.24f)
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                properties = MapProperties(isBuildingEnabled = true),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = false,
+                    scrollGesturesEnabled = false,
+                    zoomGesturesEnabled = false,
+                    rotationGesturesEnabled = false,
+                    tiltGesturesEnabled = false,
+                    mapToolbarEnabled = false,
+                    compassEnabled = false
                 )
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            NeonBlue.copy(alpha = 0.08f),
-                            NeonGreen.copy(alpha = 0.06f),
-                            Color.Transparent
-                        )
-                    )
-                )
-                for (index in 0 until pathPoints.lastIndex) {
-                    drawLine(
-                        color = NeonBlue,
-                        start = pathPoints[index],
-                        end = pathPoints[index + 1],
-                        strokeWidth = 8f,
-                        cap = StrokeCap.Round,
-                        pathEffect = PathEffect.cornerPathEffect(28f)
-                    )
-                }
-                pathPoints.forEachIndexed { index, offset ->
-                    drawCircle(
-                        color = if (index == pathPoints.lastIndex) NeonGreen else NeonOrange,
-                        radius = if (index == pathPoints.lastIndex) 14f else 10f,
-                        center = offset
-                    )
-                }
-                drawLine(
-                    color = Color.White.copy(alpha = 0.08f),
-                    start = Offset(size.width * 0.12f, size.height * 0.2f),
-                    end = Offset(size.width * 0.86f, size.height * 0.2f),
-                    strokeWidth = 2f,
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 12f))
-                )
-                drawLine(
-                    color = Color.White.copy(alpha = 0.08f),
-                    start = Offset(size.width * 0.16f, size.height * 0.78f),
-                    end = Offset(size.width * 0.78f, size.height * 0.78f),
-                    strokeWidth = 2f,
-                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 12f))
+            ) {
+                val markerPoint = currentLocation ?: defaultPoint
+                Marker(
+                    state = rememberUpdatedMarkerState(position = LatLng(markerPoint.lat, markerPoint.lng)),
+                    title = "You are here",
+                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
                 )
             }
 
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .padding(18.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                MiniMapChip(
+                    icon = Icons.Rounded.Map,
+                    text = if (hasLocationPermission) "Current position" else "Location locked"
+                )
+                MiniMapChip(
+                    icon = Icons.Rounded.MyLocation,
+                    text = if (currentLocation != null) "GPS ready" else "Waiting"
+                )
+            }
+
+            if (!hasLocationPermission) {
+                SurfacePanel(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
                 ) {
-                    RoutePreviewChip(icon = Icons.Rounded.Map, text = "5.2 km")
-                    RoutePreviewChip(icon = Icons.Rounded.CalendarMonth, text = "24 min")
-                }
-                SurfacePanel {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = "Canal Loop",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onBackground
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Enable location to show your live map pin.",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        FilledTonalButton(onClick = {
+                            permissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
                             )
-                            BodyText("Balanced pace with two reward checkpoints.")
-                        }
-                        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = "420 pts",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = NeonOrange
-                            )
-                            Text(
-                                text = "Live ready",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = NeonGreen
-                            )
+                        }) {
+                            Text("Grant access")
                         }
                     }
                 }
@@ -459,11 +520,11 @@ private fun RoutePreviewCard() {
 }
 
 @Composable
-private fun RoutePreviewChip(icon: ImageVector, text: String) {
+private fun MiniMapChip(icon: ImageVector, text: String) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.86f))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.88f))
             .border(1.dp, SurfaceOutline, RoundedCornerShape(18.dp))
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -559,4 +620,26 @@ private fun RecentRunCard(run: RecentRunItem) {
             }
         }
     }
+}
+
+private fun hasLocationPermission(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
+private fun getBestLastKnownLocation(context: Context): Location? {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
+    val providers = runCatching { locationManager.getProviders(true) }.getOrDefault(emptyList())
+    return providers.mapNotNull { provider ->
+        runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull()
+    }.minByOrNull { location -> location.accuracy.takeIf { it > 0f } ?: Float.MAX_VALUE }
+}
+
+private fun formatDashboardDate(date: LocalDate): String {
+    return date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, uuuu", Locale.US))
 }
