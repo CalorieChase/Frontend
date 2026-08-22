@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -51,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.example.caloriechase.ui.LocationSuggestion
 import com.example.caloriechase.ui.components.BodyText
+import com.example.caloriechase.ui.components.CalorieTopAppBar
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -172,12 +172,17 @@ fun LocationPickerScreen(
             )
         }
 
+        CalorieTopAppBar(
+            title = "Choose Starting Point",
+            modifier = Modifier.align(Alignment.TopCenter),
+            onBack = onBack
+        )
+
         Surface(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 84.dp),
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp,
             shadowElevation = 8.dp
