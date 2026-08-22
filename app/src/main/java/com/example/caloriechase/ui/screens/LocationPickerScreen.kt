@@ -182,7 +182,7 @@ fun LocationPickerScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 84.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 76.dp),
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp,
             shadowElevation = 8.dp
