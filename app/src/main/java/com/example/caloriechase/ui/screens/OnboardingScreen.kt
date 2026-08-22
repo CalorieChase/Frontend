@@ -113,7 +113,7 @@ fun OnboardingScreen(
                 .padding(innerPadding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 start = 24.dp,
-                top = 16.dp,
+                top = 12.dp,
                 end = 24.dp,
                 bottom = 24.dp
             ),
