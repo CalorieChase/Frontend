@@ -35,7 +35,7 @@ import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.RunStatsRow
 import com.example.caloriechase.ui.components.ScreenColumn
-import com.example.caloriechase.ui.components.ScreenHeader
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.SecondaryButton
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonGreen
@@ -137,99 +137,104 @@ fun ActiveRunScreen(
         }
     }
 
-    ScreenColumn(modifier = modifier.fillMaxSize()) {
-        ScreenHeader(
-            title = "Live route session",
-            subtitle = "Move along the route, get close to coins, and finish with a real session summary.",
-            onBack = onBack
-        )
+    ScreenScaffold(
+        title = "Active Run",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBack
+    ) { innerPadding ->
+        ScreenColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            applySafeDrawingInsets = false
+        ) {
+            ActiveRunMapCard(
+                routePreview = routePreview,
+                currentLocation = runSession.currentLocation,
+                collectedCoinIndices = runSession.collectedCoinIndices
+            )
 
-        ActiveRunMapCard(
-            routePreview = routePreview,
-            currentLocation = runSession.currentLocation,
-            collectedCoinIndices = runSession.collectedCoinIndices
-        )
+            if (!hasLocationPermission) {
+                SurfacePanel(emphasized = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text(
+                            text = "Location access needed",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        BodyText("CalorieChase needs your location during the run to track distance and collect nearby coins automatically.")
+                        PrimaryButton(
+                            text = "Grant location access",
+                            onClick = {
+                                permissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                            }
+                        )
+                    }
+                }
+            }
 
-        if (!hasLocationPermission) {
+            runSession.lastCollectedCoinValue?.let { collectedValue ->
+                SurfacePanel(emphasized = true) {
+                    Text(
+                        text = "+$collectedValue pts coin collected",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = NeonGreen
+                    )
+                }
+            }
+
             SurfacePanel(emphasized = true) {
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text(
-                        text = "Location access needed",
+                        text = "Live progress",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onBackground
                     )
-                    BodyText("CalorieChase needs your location during the run to track distance and collect nearby coins automatically.")
-                    PrimaryButton(
-                        text = "Grant location access",
-                        onClick = {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION
-                                )
-                            )
-                        }
+                    RunStatsRow(stats = liveStats)
+                }
+            }
+
+            SurfacePanel {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text(
+                        text = "Mission progress",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
+                    ProgressMetric(
+                        label = "Distance covered",
+                        value = "${formatDistanceLabel(runSession.distanceMeters)} of ${routePreview.distanceLabel}",
+                        progress = distanceProgress
+                    )
+                    ProgressMetric(
+                        label = "Coins collected",
+                        value = "${runSession.collectedCoinIndices.size} of ${routePreview.coinSpots.size}",
+                        progress = coinProgress
+                    )
+                    BodyText(finishStatusLine(runSession.finishDistanceMeters))
                 }
             }
-        }
 
-        runSession.lastCollectedCoinValue?.let { collectedValue ->
-            SurfacePanel(emphasized = true) {
-                Text(
-                    text = "+$collectedValue pts coin collected",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = NeonGreen
-                )
-            }
-        }
-
-        SurfacePanel(emphasized = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    text = "Live progress",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                RunStatsRow(stats = liveStats)
-            }
-        }
-
-        SurfacePanel {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    text = "Mission progress",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                ProgressMetric(
-                    label = "Distance covered",
-                    value = "${formatDistanceLabel(runSession.distanceMeters)} of ${routePreview.distanceLabel}",
-                    progress = distanceProgress
-                )
-                ProgressMetric(
-                    label = "Coins collected",
-                    value = "${runSession.collectedCoinIndices.size} of ${routePreview.coinSpots.size}",
-                    progress = coinProgress
-                )
-                BodyText(finishStatusLine(runSession.finishDistanceMeters))
-            }
-        }
-
-        SurfacePanel {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "Route checkpoints",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                routePreview.checkpoints.forEachIndexed { index, checkpoint ->
-                    BodyText("${index + 1}. ${checkpoint.title} - ${checkpoint.reward}")
+            SurfacePanel {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Route checkpoints",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    routePreview.checkpoints.forEachIndexed { index, checkpoint ->
+                        BodyText("${index + 1}. ${checkpoint.title} - ${checkpoint.reward}")
+                    }
                 }
             }
-        }
 
-        PrimaryButton(text = "Finish session", onClick = onFinishRun)
+            PrimaryButton(text = "Finish session", onClick = onFinishRun)
+        }
     }
 }
 
@@ -248,56 +253,61 @@ fun RunSummaryScreen(
     val collectedCoins = runSession.collectedCoinIndices.size
     val didReachFinish = runSession.finishDistanceMeters?.let { it <= RouteFinishRadiusMeters } == true
 
-    ScreenColumn(modifier = modifier.fillMaxSize()) {
-        ScreenHeader(
-            title = "Session summary",
-            subtitle = "Your live route session is complete.",
-            onBack = null
-        )
-
-        SurfacePanel(emphasized = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = routePreview.routeName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                BodyText(
-                    if (didReachFinish) {
-                        "You closed the route near the finish marker and locked in the score you collected on the map."
-                    } else {
-                        "You ended the session before reaching the finish marker, but your live distance, calories, and score were still recorded."
-                    }
-                )
+    ScreenScaffold(
+        title = "Run Summary",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBackHome
+    ) { innerPadding ->
+        ScreenColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            applySafeDrawingInsets = false
+        ) {
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = routePreview.routeName,
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    BodyText(
+                        if (didReachFinish) {
+                            "You closed the route near the finish marker and locked in the score you collected on the map."
+                        } else {
+                            "You ended the session before reaching the finish marker, but your live distance, calories, and score were still recorded."
+                        }
+                    )
+                }
             }
-        }
 
-        RunStatsRow(stats = summaryStats)
+            RunStatsRow(stats = summaryStats)
 
-        SurfacePanel {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = "Highlights",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                SummaryLine("Covered ${formatDistanceLabel(runSession.distanceMeters)} across a ${routePreview.routeTypeLabel.lowercase(Locale.US)} mission.")
-                SummaryLine("Collected $collectedCoins of ${routePreview.coinSpots.size} route coins for ${runSession.score} pts.")
-                SummaryLine("Burned an estimated ${formatCaloriesLabel(estimateActiveCalories(runSession.elapsedMillis, weightKg))} during ${formatElapsedTime(runSession.elapsedMillis)} of movement.")
-                Text(
-                    text = if (didReachFinish) {
-                        "Finish chest unlocked: ${runSession.score} pts"
-                    } else {
-                        "Session reward saved: ${runSession.score} pts"
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                    color = NeonGreen
-                )
+            SurfacePanel {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = "Highlights",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    SummaryLine("Covered ${formatDistanceLabel(runSession.distanceMeters)} across a ${routePreview.routeTypeLabel.lowercase(Locale.US)} mission.")
+                    SummaryLine("Collected $collectedCoins of ${routePreview.coinSpots.size} route coins for ${runSession.score} pts.")
+                    SummaryLine("Burned an estimated ${formatCaloriesLabel(estimateActiveCalories(runSession.elapsedMillis, weightKg))} during ${formatElapsedTime(runSession.elapsedMillis)} of movement.")
+                    Text(
+                        text = if (didReachFinish) {
+                            "Finish chest unlocked: ${runSession.score} pts"
+                        } else {
+                            "Session reward saved: ${runSession.score} pts"
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                        color = NeonGreen
+                    )
+                }
             }
-        }
 
-        PrimaryButton(text = "Back to home", onClick = onBackHome)
-        SecondaryButton(text = "Plan another route", onClick = onTryAnother)
+            PrimaryButton(text = "Back to home", onClick = onBackHome)
+            SecondaryButton(text = "Plan another route", onClick = onTryAnother)
+        }
     }
 }
 

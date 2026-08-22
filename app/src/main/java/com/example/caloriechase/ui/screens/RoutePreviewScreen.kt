@@ -3,23 +3,12 @@ package com.example.caloriechase.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.caloriechase.ui.RoutePoint
@@ -30,6 +19,7 @@ import com.example.caloriechase.ui.components.MiniLegendRow
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.RouteMapCard
 import com.example.caloriechase.ui.components.ScreenColumn
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.SecondaryButton
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonGreen
@@ -44,17 +34,17 @@ fun RoutePreviewScreen(
     onRemixRoute: () -> Unit,
     onStartRun: () -> Unit
 ) {
-    Scaffold(
+    ScreenScaffold(
+        title = "Route Overview",
         modifier = modifier.fillMaxSize(),
-        topBar = {
-            RouteOverviewTopBar(onBack = onBack)
-        }
+        onBack = onBack
     ) { innerPadding ->
         ScreenColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+            applySafeDrawingInsets = false
         ) {
             SurfacePanel(emphasized = true) {
                 Text(
@@ -92,39 +82,6 @@ fun RoutePreviewScreen(
 
             PrimaryButton(text = "Start route session", onClick = onStartRun)
             SecondaryButton(text = "Generate another route", onClick = onRemixRoute)
-        }
-    }
-}
-
-@Composable
-private fun RouteOverviewTopBar(onBack: () -> Unit) {
-    Surface(
-        tonalElevation = 2.dp,
-        shadowElevation = 2.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .height(52.dp)
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
-            Text(
-                text = "Route Overview",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground
-            )
         }
     }
 }
