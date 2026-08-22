@@ -157,12 +157,14 @@ fun CalorieChaseApp(
                 composable(AppDestination.Onboarding.route) {
                     OnboardingScreen(
                         modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() },
                         onGetStarted = { navController.navigate(AppDestination.Login.route) }
                     )
                 }
                 composable(AppDestination.Login.route) {
                     LoginScreen(
                         modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() },
                         onLogin = {
                             navController.navigate(AppDestination.Home.route) {
                                 popUpTo(AppDestination.Login.route) { inclusive = true }
@@ -174,6 +176,7 @@ fun CalorieChaseApp(
                 composable(AppDestination.Register.route) {
                     RegisterScreen(
                         modifier = Modifier.fillMaxSize(),
+                        onBack = { navController.popBackStack() },
                         onContinue = { navController.navigate(AppDestination.Biometrics.route) },
                         onGoToLogin = { navController.popBackStack() }
                     )

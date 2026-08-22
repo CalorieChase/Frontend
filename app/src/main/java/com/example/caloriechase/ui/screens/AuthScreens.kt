@@ -29,6 +29,7 @@ import com.example.caloriechase.ui.components.CalorieTextField
 import com.example.caloriechase.ui.components.EyebrowText
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.ScreenColumn
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonBlue
 import com.example.caloriechase.ui.theme.NeonOrange
@@ -36,6 +37,7 @@ import com.example.caloriechase.ui.theme.NeonOrange
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit,
     onLogin: () -> Unit,
     onGoToRegister: () -> Unit
 ) {
@@ -43,86 +45,98 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    ScreenColumn(modifier = modifier.fillMaxSize()) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            EyebrowText("CalorieChase", color = NeonBlue)
-            Text(
-                text = "Welcome back",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            BodyText("Pick up where you left off, review your progress, and start your next run fast.")
-        }
-
-        SurfacePanel(emphasized = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    ScreenScaffold(
+        title = "Log In",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBack
+    ) { innerPadding ->
+        ScreenColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            applySafeDrawingInsets = false
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                EyebrowText("CalorieChase", color = NeonBlue)
                 Text(
-                    text = "Sign in",
-                    style = MaterialTheme.typography.titleLarge,
+                    text = "Welcome back",
+                    style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                BodyText("Use your account details to continue.")
-                CalorieTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = "Email address",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
+                BodyText("Pick up where you left off, review your progress, and start your next run fast.")
+            }
+
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Sign in",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                )
-                CalorieTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = "Password",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    visualTransformation = if (passwordVisible) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = if (passwordVisible) {
-                                    Icons.Rounded.VisibilityOff
-                                } else {
-                                    Icons.Rounded.Visibility
-                                },
-                                contentDescription = if (passwordVisible) {
-                                    "Hide password"
-                                } else {
-                                    "Show password"
-                                }
+                    BodyText("Use your account details to continue.")
+                    CalorieTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Email address",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+                    CalorieTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Password",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        visualTransformation = if (passwordVisible) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) {
+                                        Icons.Rounded.VisibilityOff
+                                    } else {
+                                        Icons.Rounded.Visibility
+                                    },
+                                    contentDescription = if (passwordVisible) {
+                                        "Hide password"
+                                    } else {
+                                        "Show password"
+                                    }
+                                )
                             )
                         }
-                    }
-                )
+                    )
+                }
             }
+
+            PrimaryButton(text = "Log in", onClick = onLogin)
+
+            BodyText(
+                text = "Placeholder sign-in opens the full Kotlin frontend without waiting on backend auth wiring.",
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+
+            AuthSwitchPanel(
+                message = "New here? Create your account and set up your profile in under a minute.",
+                actionLabel = "Sign up",
+                actionColor = NeonOrange,
+                onAction = onGoToRegister
+            )
         }
-
-        PrimaryButton(text = "Log in", onClick = onLogin)
-
-        BodyText(
-            text = "Placeholder sign-in opens the full Kotlin frontend without waiting on backend auth wiring.",
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-
-        AuthSwitchPanel(
-            message = "New here? Create your account and set up your profile in under a minute.",
-            actionLabel = "Sign up",
-            actionColor = NeonOrange,
-            onAction = onGoToRegister
-        )
     }
 }
 
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit,
     onContinue: () -> Unit,
     onGoToLogin: () -> Unit
 ) {
@@ -131,85 +145,96 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    ScreenColumn(modifier = modifier.fillMaxSize()) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                text = "Create your account",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            BodyText("Set up your profile once so runs, calories, and progress feel personalized from day one.")
-        }
-
-        SurfacePanel(emphasized = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    ScreenScaffold(
+        title = "Sign Up",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBack
+    ) { innerPadding ->
+        ScreenColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            applySafeDrawingInsets = false
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
-                    text = "About you",
-                    style = MaterialTheme.typography.titleLarge,
+                    text = "Create your account",
+                    style = MaterialTheme.typography.headlineLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                BodyText("These details help create a better route and coaching experience.")
-                CalorieTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = "Full name",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
+                BodyText("Set up your profile once so runs, calories, and progress feel personalized from day one.")
+            }
+
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "About you",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                )
-                CalorieTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = "Email address",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
+                    BodyText("These details help create a better route and coaching experience.")
+                    CalorieTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = "Full name",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
+                        )
                     )
-                )
-                CalorieTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = "Password",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    visualTransformation = if (passwordVisible) {
-                        VisualTransformation.None
-                    } else {
-                        PasswordVisualTransformation()
-                    },
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = if (passwordVisible) {
-                                    Icons.Rounded.VisibilityOff
-                                } else {
-                                    Icons.Rounded.Visibility
-                                },
-                                contentDescription = if (passwordVisible) {
-                                    "Hide password"
-                                } else {
-                                    "Show password"
-                                }
+                    CalorieTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Email address",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+                    CalorieTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Password",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        visualTransformation = if (passwordVisible) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) {
+                                        Icons.Rounded.VisibilityOff
+                                    } else {
+                                        Icons.Rounded.Visibility
+                                    },
+                                    contentDescription = if (passwordVisible) {
+                                        "Hide password"
+                                    } else {
+                                        "Show password"
+                                    }
+                                )
                             )
                         }
-                    }
-                )
+                    )
+                }
             }
+
+            PrimaryButton(text = "Continue setup", onClick = onContinue)
+
+            BodyText("Next, you'll add height and weight so the placeholder frontend can personalize route and calorie panels.")
+
+            AuthSwitchPanel(
+                message = "Already have an account? Jump back into your routine.",
+                actionLabel = "Log in",
+                actionColor = NeonBlue,
+                onAction = onGoToLogin
+            )
         }
-
-        PrimaryButton(text = "Continue setup", onClick = onContinue)
-
-        BodyText("Next, you'll add height and weight so the placeholder frontend can personalize route and calorie panels.")
-
-        AuthSwitchPanel(
-            message = "Already have an account? Jump back into your routine.",
-            actionLabel = "Log in",
-            actionColor = NeonBlue,
-            onAction = onGoToLogin
-        )
     }
 }
 

@@ -36,6 +36,7 @@ import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.FeatureGlyph
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.ScreenColumn
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.SecondaryButton
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonBlue
@@ -57,6 +58,7 @@ private data class OnboardingPage(
 @Composable
 fun OnboardingScreen(
     modifier: Modifier = Modifier,
+    onBack: () -> Unit,
     onGetStarted: () -> Unit
 ) {
     val pages = listOf(
@@ -100,115 +102,124 @@ fun OnboardingScreen(
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage == pages.lastIndex
 
-    ScreenColumn(
+    ScreenScaffold(
+        title = "Welcome",
         modifier = modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            start = 24.dp,
-            top = 16.dp,
-            end = 24.dp,
-            bottom = 24.dp
-        )
-    ) {
-        HorizontalPager(
-            state = pagerState,
+        onBack = onBack
+    ) { innerPadding ->
+        ScreenColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-        ) { page ->
-            val item = pages[page]
-            SurfacePanel(
-                emphasized = page == pages.lastIndex,
-                modifier = Modifier.padding(top = 12.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    horizontalAlignment = Alignment.Start
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 24.dp,
+                top = 16.dp,
+                end = 24.dp,
+                bottom = 24.dp
+            ),
+            applySafeDrawingInsets = false
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+            ) { page ->
+                val item = pages[page]
+                SurfacePanel(
+                    emphasized = page == pages.lastIndex,
+                    modifier = Modifier.padding(top = 12.dp)
                 ) {
-                    Text(
-                        text = item.eyebrow,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = item.accent
-                    )
-                    FeatureGlyph(icon = item.icon, accent = item.accent)
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold
-                    )
-                    BodyText(item.description)
-                    if (page == pages.lastIndex) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .background(
-                                    color = item.accent.copy(alpha = 0.12f),
-                                    shape = RoundedCornerShape(24.dp)
-                                )
-                                .border(
-                                    width = 1.dp,
-                                    color = item.accent.copy(alpha = 0.35f),
-                                    shape = RoundedCornerShape(24.dp)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = item.eyebrow,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = item.accent
+                        )
+                        FeatureGlyph(icon = item.icon, accent = item.accent)
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold
+                        )
+                        BodyText(item.description)
+                        if (page == pages.lastIndex) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .background(
+                                        color = item.accent.copy(alpha = 0.12f),
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = item.accent.copy(alpha = 0.35f),
+                                        shape = RoundedCornerShape(24.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = "Get Started",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    color = item.accent
-                                )
-                                Text(
-                                    text = "Frontend preview ready",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Text(
+                                        text = "Get Started",
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        color = item.accent
+                                    )
+                                    Text(
+                                        text = "Frontend preview ready",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            repeat(pages.size) { index ->
-                val active = index == pagerState.currentPage
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(if (active) 24.dp else 8.dp, 8.dp)
-                        .background(
-                            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            shape = CircleShape
-                        )
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(pages.size) { index ->
+                    val active = index == pagerState.currentPage
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(if (active) 24.dp else 8.dp, 8.dp)
+                            .background(
+                                color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                shape = CircleShape
+                            )
+                    )
+                }
             }
-        }
 
-        if (isLastPage) {
-            PrimaryButton(text = "Get Started", onClick = onGetStarted)
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                PrimaryButton(
-                    text = "Next",
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+            if (isLastPage) {
+                PrimaryButton(text = "Get Started", onClick = onGetStarted)
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    PrimaryButton(
+                        text = "Next",
+                        onClick = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
                         }
-                    }
-                )
-                SecondaryButton(
-                    text = "Skip intro",
-                    onClick = onGetStarted
-                )
+                    )
+                    SecondaryButton(
+                        text = "Skip intro",
+                        onClick = onGetStarted
+                    )
+                }
             }
         }
     }
