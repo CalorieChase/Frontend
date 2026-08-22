@@ -40,6 +40,7 @@ fun ScreenScaffold(
 ) {
     Scaffold(
         modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CalorieTopAppBar(
                 title = title,
