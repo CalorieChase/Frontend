@@ -21,7 +21,7 @@ import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.CalorieTextField
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.ScreenColumn
-import com.example.caloriechase.ui.components.ScreenHeader
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonGreen
 import com.example.caloriechase.ui.theme.NeonOrange
@@ -35,68 +35,73 @@ fun BiometricsScreen(
     var height by remember { mutableStateOf("178") }
     var weight by remember { mutableStateOf("75") }
 
-    ScreenColumn(modifier = modifier.fillMaxSize()) {
-        ScreenHeader(
-            title = "Complete your profile",
-            subtitle = "Use placeholder biometrics for now so calorie and route estimates still feel personalized.",
-            onBack = onBack
-        )
+    ScreenScaffold(
+        title = "Biometrics",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBack
+    ) { innerPadding ->
+        ScreenColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            applySafeDrawingInsets = false
+        ) {
+            SurfacePanel(emphasized = true) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Body metrics",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    BodyText("These values stay local in the placeholder flow until backend wiring is ready.")
+                    CalorieTextField(
+                        value = height,
+                        onValueChange = { height = it.filter(Char::isDigit) },
+                        label = "Height (cm)",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
+                        )
+                    )
+                    CalorieTextField(
+                        value = weight,
+                        onValueChange = { weight = it.filter(Char::isDigit) },
+                        label = "Weight (kg)",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        )
+                    )
+                }
+            }
 
-        SurfacePanel(emphasized = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            SurfacePanel {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MetricNote("Suggested", "178 cm", NeonOrange, Modifier.weight(1f))
+                    MetricNote("Recommended", "75 kg", NeonGreen, Modifier.weight(1f))
+                }
+            }
+
+            SurfacePanel {
                 Text(
-                    text = "Body metrics",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                BodyText("These values stay local in the placeholder flow until backend wiring is ready.")
-                CalorieTextField(
-                    value = height,
-                    onValueChange = { height = it.filter(Char::isDigit) },
-                    label = "Height (cm)",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    )
-                )
-                CalorieTextField(
-                    value = weight,
-                    onValueChange = { weight = it.filter(Char::isDigit) },
-                    label = "Weight (kg)",
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    )
+                    text = "These placeholder values can be changed later once real account persistence is wired in.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
 
-        SurfacePanel {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricNote("Suggested", "178 cm", NeonOrange, Modifier.weight(1f))
-                MetricNote("Recommended", "75 kg", NeonGreen, Modifier.weight(1f))
-            }
-        }
+            PrimaryButton(
+                text = "Finish setup",
+                onClick = {
+                    onComplete(height.toIntOrNull() ?: 178, weight.toIntOrNull() ?: 75)
+                }
+            )
 
-        SurfacePanel {
-            Text(
-                text = "These placeholder values can be changed later once real account persistence is wired in.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            BodyText(
+                text = "You can treat this as a frontend-only profile step until data persistence is added.",
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
-
-        PrimaryButton(
-            text = "Finish setup",
-            onClick = {
-                onComplete(height.toIntOrNull() ?: 178, weight.toIntOrNull() ?: 75)
-            }
-        )
-
-        BodyText(
-            text = "You can treat this as a frontend-only profile step until data persistence is added.",
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
     }
 }
 

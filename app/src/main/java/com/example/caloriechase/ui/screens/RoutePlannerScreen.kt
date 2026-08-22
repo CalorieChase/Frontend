@@ -29,7 +29,7 @@ import com.example.caloriechase.ui.RouteTypeUi
 import com.example.caloriechase.ui.components.BodyText
 import com.example.caloriechase.ui.components.PrimaryButton
 import com.example.caloriechase.ui.components.ScreenColumn
-import com.example.caloriechase.ui.components.ScreenHeader
+import com.example.caloriechase.ui.components.ScreenScaffold
 import com.example.caloriechase.ui.components.StatBadge
 import com.example.caloriechase.ui.components.SurfacePanel
 import com.example.caloriechase.ui.theme.NeonBlue
@@ -72,165 +72,170 @@ fun RoutePlannerScreen(
         "The backend converts this calorie target into a walking distance before routing."
     }
 
-    ScreenColumn(modifier = modifier.fillMaxSize()) {
-        ScreenHeader(
-            title = "Build your next route",
-            subtitle = "Choose a real starting point, a route style, and a goal the backend can generate right now.",
-            onBack = onBack
-        )
-
-        SurfacePanel(emphasized = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "Starting point",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                BodyText(selectedLocation.title)
-                BodyText(selectedLocation.address)
-                BodyText(selectedLocation.description)
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatBadge("Weight", "$weightKg kg", NeonGreen, Modifier.weight(1f))
-                    StatBadge("Style", selectedRouteType.label, NeonBlue, Modifier.weight(1f))
-                }
-                PrimaryButton(text = "Change location", onClick = onOpenLocationPicker)
-            }
-        }
-
-        SurfacePanel {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "Goal and target",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                ExposedDropdownMenuBox(
-                    expanded = goalDropdownExpanded,
-                    onExpandedChange = { goalDropdownExpanded = !goalDropdownExpanded }
-                ) {
-                    OutlinedTextField(
-                        value = selectedGoalType.label,
-                        onValueChange = {},
-                        modifier = Modifier
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                            .fillMaxWidth(),
-                        readOnly = true,
-                        label = { Text("Goal type") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = goalDropdownExpanded)
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = goalDropdownExpanded,
-                        onDismissRequest = { goalDropdownExpanded = false }
-                    ) {
-                        GoalTypeUi.entries.forEach { goalType ->
-                            DropdownMenuItem(
-                                text = { Text(goalType.label) },
-                                onClick = {
-                                    goalDropdownExpanded = false
-                                    onSelectGoalType(goalType)
-                                }
-                            )
-                        }
-                    }
-                }
-                Text(
-                    text = goalLabel,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Slider(
-                    value = selectedGoalValue.coerceIn(sliderRange.start, sliderRange.endInclusive),
-                    onValueChange = onGoalValueChange,
-                    valueRange = sliderRange,
-                    steps = sliderSteps
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    StatBadge(
-                        "Low",
-                        if (selectedGoalType == GoalTypeUi.Distance) "1.5 km" else "80 kcal",
-                        NeonOrange,
-                        Modifier.weight(1f)
-                    )
-                    StatBadge(
-                        "High",
-                        if (selectedGoalType == GoalTypeUi.Distance) "8.0 km" else "420 kcal",
-                        NeonBlue,
-                        Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-
-        SurfacePanel {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text(
-                    text = "Route type",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                ExposedDropdownMenuBox(
-                    expanded = routeDropdownExpanded,
-                    onExpandedChange = { routeDropdownExpanded = !routeDropdownExpanded }
-                ) {
-                    OutlinedTextField(
-                        value = selectedRouteType.label,
-                        onValueChange = {},
-                        modifier = Modifier
-                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                            .fillMaxWidth(),
-                        readOnly = true,
-                        label = { Text("Path type") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = routeDropdownExpanded)
-                        },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = routeDropdownExpanded,
-                        onDismissRequest = { routeDropdownExpanded = false }
-                    ) {
-                        RouteTypeUi.entries.forEach { routeType ->
-                            DropdownMenuItem(
-                                text = { Text(routeType.label) },
-                                onClick = {
-                                    routeDropdownExpanded = false
-                                    onSelectRouteType(routeType)
-                                }
-                            )
-                        }
-                    }
-                }
-                BodyText(
-                    when (selectedRouteType) {
-                        RouteTypeUi.Auto -> "Let the backend compare loop and out-and-back options near your target."
-                        RouteTypeUi.Loop -> "Start and finish at the same point with a closed route."
-                        RouteTypeUi.Turnaround -> "Walk outward for about half the target and return along the path."
-                    }
-                )
-            }
-        }
-
-        if (routeErrorMessage != null) {
+    ScreenScaffold(
+        title = "Plan Route",
+        modifier = modifier.fillMaxSize(),
+        onBack = onBack
+    ) { innerPadding ->
+        ScreenColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            applySafeDrawingInsets = false
+        ) {
             SurfacePanel(emphasized = true) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "Route generation issue",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = NeonRed
+                        text = "Starting point",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                    BodyText(routeErrorMessage)
-                    PrimaryButton(text = "Dismiss", onClick = onDismissError)
+                    BodyText(selectedLocation.title)
+                    BodyText(selectedLocation.address)
+                    BodyText(selectedLocation.description)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatBadge("Weight", "$weightKg kg", NeonGreen, Modifier.weight(1f))
+                        StatBadge("Style", selectedRouteType.label, NeonBlue, Modifier.weight(1f))
+                    }
+                    PrimaryButton(text = "Change location", onClick = onOpenLocationPicker)
                 }
             }
-        }
 
-        PrimaryButton(
-            text = if (isGeneratingRoute) "Generating live route..." else "Generate live route",
-            enabled = !isGeneratingRoute,
-            onClick = onGenerateRoute
-        )
+            SurfacePanel {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Goal and target",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    ExposedDropdownMenuBox(
+                        expanded = goalDropdownExpanded,
+                        onExpandedChange = { goalDropdownExpanded = !goalDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedGoalType.label,
+                            onValueChange = {},
+                            modifier = Modifier
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth(),
+                            readOnly = true,
+                            label = { Text("Goal type") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = goalDropdownExpanded)
+                            },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = goalDropdownExpanded,
+                            onDismissRequest = { goalDropdownExpanded = false }
+                        ) {
+                            GoalTypeUi.entries.forEach { goalType ->
+                                DropdownMenuItem(
+                                    text = { Text(goalType.label) },
+                                    onClick = {
+                                        goalDropdownExpanded = false
+                                        onSelectGoalType(goalType)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = goalLabel,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Slider(
+                        value = selectedGoalValue.coerceIn(sliderRange.start, sliderRange.endInclusive),
+                        onValueChange = onGoalValueChange,
+                        valueRange = sliderRange,
+                        steps = sliderSteps
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        StatBadge(
+                            "Low",
+                            if (selectedGoalType == GoalTypeUi.Distance) "1.5 km" else "80 kcal",
+                            NeonOrange,
+                            Modifier.weight(1f)
+                        )
+                        StatBadge(
+                            "High",
+                            if (selectedGoalType == GoalTypeUi.Distance) "8.0 km" else "420 kcal",
+                            NeonBlue,
+                            Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+
+            SurfacePanel {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Route type",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    ExposedDropdownMenuBox(
+                        expanded = routeDropdownExpanded,
+                        onExpandedChange = { routeDropdownExpanded = !routeDropdownExpanded }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedRouteType.label,
+                            onValueChange = {},
+                            modifier = Modifier
+                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth(),
+                            readOnly = true,
+                            label = { Text("Path type") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = routeDropdownExpanded)
+                            },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = routeDropdownExpanded,
+                            onDismissRequest = { routeDropdownExpanded = false }
+                        ) {
+                            RouteTypeUi.entries.forEach { routeType ->
+                                DropdownMenuItem(
+                                    text = { Text(routeType.label) },
+                                    onClick = {
+                                        routeDropdownExpanded = false
+                                        onSelectRouteType(routeType)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    BodyText(
+                        when (selectedRouteType) {
+                            RouteTypeUi.Auto -> "Let the backend compare loop and out-and-back options near your target."
+                            RouteTypeUi.Loop -> "Start and finish at the same point with a closed route."
+                            RouteTypeUi.Turnaround -> "Walk outward for about half the target and return along the path."
+                        }
+                    )
+                }
+            }
+
+            if (routeErrorMessage != null) {
+                SurfacePanel(emphasized = true) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "Route generation issue",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = NeonRed
+                        )
+                        BodyText(routeErrorMessage)
+                        PrimaryButton(text = "Dismiss", onClick = onDismissError)
+                    }
+                }
+            }
+
+            PrimaryButton(
+                text = if (isGeneratingRoute) "Generating live route..." else "Generate live route",
+                enabled = !isGeneratingRoute,
+                onClick = onGenerateRoute
+            )
+        }
     }
 }
